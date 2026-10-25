@@ -57,8 +57,8 @@ npm run dev                                       # serves ./hvsc-build at /hvsc
      }
    ]
    ```
-4. In the Cloudflare Pages project add the build variable `VITE_HVSC_URL=https://hvsc.example.com` and redeploy. (The value is baked in
-   at build time.)
+4. Put the public URL in `.env.production` as `VITE_HVSC_URL=https://hvsc.example.com` (or set it as a Pages build variable) and redeploy.
+   The value is baked in at build time. This repo currently points at the bucket's `r2.dev` URL.
 
 ## New HVSC releases
 
