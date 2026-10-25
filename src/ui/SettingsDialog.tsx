@@ -2,7 +2,7 @@ import { useRef } from "preact/hooks";
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
-import { message, roms, saveRoms, settings, settingsOpen, songlengths, stil, tunes, updateSettings, wipeLibrary } from "../state";
+import { connectHvsc, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
 import { Close } from "./Icons";
 
 async function readBytes(f: File | undefined) {
@@ -89,6 +89,37 @@ export function SettingsDialog() {
           />
         </label>
 
+        {hvscAvailable && (
+          <>
+            <h4>Online HVSC</h4>
+            <label class="field">
+              <span>
+                Browse the HVSC catalogue
+                <small>
+                  {hvscStatus.value.text || "Searchable list of the whole collection; tunes download as you play them."}
+                </small>
+              </span>
+              <input
+                type="checkbox"
+                checked={s.hvsc}
+                onChange={(e) => {
+                  updateSettings({ hvsc: (e.currentTarget as HTMLInputElement).checked });
+                  void connectHvsc();
+                }}
+              />
+            </label>
+            {s.hvsc && (
+              <div class="field">
+                <span>
+                  Check for a new release
+                  <small>The catalogue also refreshes itself whenever you open the app.</small>
+                </span>
+                <button class="btn" onClick={() => void connectHvsc(true)}>Refresh</button>
+              </div>
+            )}
+          </>
+        )}
+
         <h4>Collection data</h4>
         <div class="field">
           <span>
@@ -135,7 +166,7 @@ export function SettingsDialog() {
         <h4>Library</h4>
         <div class="field">
           <span>
-            {tunes.value.length.toLocaleString()} tunes stored in this browser
+            {localTunes.value.length.toLocaleString()} imported tunes stored in this browser
             <small>Removes imported tunes, song lengths and STIL. Favorites and playlists are kept.</small>
           </span>
           <button class="btn danger" onClick={() => confirm("Remove all imported tunes from this browser?") && void wipeLibrary()}>

@@ -79,3 +79,10 @@ export async function clearLibrary(): Promise<void> {
   tx.objectStore("files").clear();
   await done(tx);
 }
+
+export async function putFile(path: string, data: ArrayBuffer): Promise<void> {
+  const db = await open();
+  const tx = db.transaction("files", "readwrite");
+  tx.objectStore("files").put(data, path);
+  await done(tx);
+}

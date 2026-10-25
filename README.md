@@ -9,6 +9,7 @@ favorites. Nothing is uploaded, and no music is bundled.
 ## Features
 
 - Accurate SID playback with a choice of **reSIDfp** (reference accuracy) or **SIDLite** (light enough for phones)
+- Optional online HVSC catalogue: the whole collection is searchable at once and tunes stream as you play them (see [docs/HVSC-HOSTING.md](docs/HVSC-HOSTING.md), including the copyright note)
 - Import an unpacked HVSC folder (drag it onto the page, or use *Add folder*), loose `.sid` files, or a `.zip`
 - Instant search by title, composer, year or path across the whole collection; sortable, virtualised list
 - Playlists, favorites, history; the queue follows the list you started from; shuffle and repeat

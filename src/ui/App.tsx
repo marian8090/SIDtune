@@ -1,6 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { itemsFromDrop } from "../lib/importer";
-import { boot, booted, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
+import { boot, booted, hvscStatus, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
 import { Menu, Search } from "./Icons";
 import { Welcome } from "./Import";
 import { NowPlaying } from "./NowPlaying";
@@ -64,7 +64,14 @@ export function App() {
       <Sidebar open={nav} close={() => setNav(false)} />
       {nav && <div class="scrim" onClick={() => setNav(false)} />}
       <main>
-        {empty ? (
+        {empty && hvscStatus.value.state === "loading" ? (
+          <div class="welcome">
+            <div class="welcome-card">
+              <h1>SIDtune</h1>
+              <div class="progress"><div style={{ width: "100%" }} class="indeterminate" /><span>{hvscStatus.value.text}</span></div>
+            </div>
+          </div>
+        ) : empty ? (
           <Welcome />
         ) : (
           <>

@@ -8,7 +8,7 @@ import {
   addToPlaylist,
   selectSong,
   song,
-  stil,
+  stilFor,
   toggleFavorite,
   toggleVoice,
   voiceMuted,
@@ -22,7 +22,7 @@ export function NowPlaying() {
   const t = current.value;
   if (!nowPlayingOpen.value || !t) return null;
   const d = details.value;
-  const note = stil.value.get(t.path);
+  const note = stilFor(t.path);
   const songs = d?.songs ?? t.songs;
   const muted = voiceMuted.value;
 

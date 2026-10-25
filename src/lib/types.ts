@@ -14,6 +14,10 @@ export interface TuneMeta {
   size: number;
   /** Lower-cased haystack for search. */
   key: string;
+  /** Present for tunes from the online catalogue: where the file lives inside the server packs. */
+  remote?: { part: number; offset: number };
+  /** Song lengths in seconds, one per subtune, when known. */
+  lengths?: number[];
 }
 
 export interface Settings {
@@ -21,6 +25,8 @@ export interface Settings {
   sidModel: "auto" | "MOS6581" | "MOS8580";
   c64Model: "auto" | "PAL" | "NTSC";
   digiBoost: boolean;
+  /** Browse the online HVSC catalogue when the site provides one. */
+  hvsc: boolean;
   defaultLengthSec: number;
   volume: number;
   shuffle: boolean;
@@ -41,6 +47,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sidModel: "auto",
   c64Model: "auto",
   digiBoost: true,
+  hvsc: true,
   defaultLengthSec: 180,
   volume: 0.8,
   shuffle: false,

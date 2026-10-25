@@ -1,5 +1,5 @@
 import { useRef } from "preact/hooks";
-import { addTestTone, importItems, importProgress } from "../state";
+import { addTestTone, connectHvsc, hvscStatus, importItems, importProgress } from "../state";
 import { itemsFromFiles } from "../lib/importer";
 import { Folder, Plus } from "./Icons";
 
@@ -30,6 +30,11 @@ export function Welcome() {
       {inputs}
       <div class="welcome-card">
         <h1>Welcome to SIDtune</h1>
+        {hvscStatus.value.state === "error" && (
+          <p class="notice">
+            {hvscStatus.value.text} <button class="link" onClick={() => void connectHvsc(true)}>Retry</button>
+          </p>
+        )}
         <p>
           Play Commodore 64 music right here in your browser. SIDtune runs a cycle-accurate C64 and SID chip emulation, and keeps your
           tunes on this device only.

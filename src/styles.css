@@ -238,3 +238,8 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+.progress > div.indeterminate { animation: slide 1.4s ease-in-out infinite; width: 40% !important; }
+@keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+.notice { background: rgba(255, 122, 138, 0.12); border: 1px solid rgba(255, 122, 138, 0.35); border-radius: var(--radius); padding: 10px 12px; color: var(--text) !important; }
+.link { color: var(--accent-strong); text-decoration: underline; }

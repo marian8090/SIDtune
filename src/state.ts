@@ -2,7 +2,8 @@ import { computed, effect, signal } from "@preact/signals";
 import toneUrl from "libsidplayfp-wasm/fixtures/test-tone-c4.sid?url";
 import { AudioController, type RomSet } from "./audio/controller";
 import type { TuneDetails } from "./audio/protocol";
-import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet } from "./lib/db";
+import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet, putFile } from "./lib/db";
+import { fetchManifest, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type Manifest } from "./lib/hvsc";
 import { expandZips, runImport, type ImportItem } from "./lib/importer";
 import { lengthForPath, parseSonglengths, type Songlengths } from "./lib/songlengths";
 import { parseStil } from "./lib/stil";
@@ -13,7 +14,19 @@ export type SortKey = "path" | "title" | "author" | "released";
 
 export const audio = new AudioController();
 
-export const tunes = signal<TuneMeta[]>([]);
+export const localTunes = signal<TuneMeta[]>([]);
+export const remoteTunes = signal<TuneMeta[]>([]);
+/** Imported tunes win over the online catalogue when both have the same path. */
+export const tunes = computed<TuneMeta[]>(() => {
+  const local = localTunes.value;
+  const remote = remoteTunes.value;
+  if (!local.length) return remote;
+  if (!remote.length) return local;
+  const map = new Map(remote.map((t) => [t.path, t]));
+  for (const t of local) map.set(t.path, t);
+  return [...map.values()];
+});
+export const hvscStatus = signal<{ state: "off" | "loading" | "ready" | "error"; text: string }>({ state: "off", text: "" });
 export const settings = signal<Settings>({ ...DEFAULT_SETTINGS });
 export const favorites = signal<string[]>([]);
 export const playlists = signal<Playlist[]>([]);
@@ -21,6 +34,8 @@ export const history = signal<string[]>([]);
 export const roms = signal<RomSet>({});
 export const songlengths = signal<Songlengths | null>(null);
 export const stil = signal<Map<string, string>>(new Map());
+export const remoteStil = signal<Map<string, string>>(new Map());
+export const hvscAvailable = HVSC_URL !== "";
 
 export const view = signal<View>("all");
 export const query = signal("");
@@ -45,11 +60,13 @@ export const voiceMuted = signal([false, false, false]);
 export const tuneMap = computed(() => new Map(tunes.value.map((t) => [t.path, t])));
 export const favoriteSet = computed(() => new Set(favorites.value));
 
+const collator = new Intl.Collator(undefined, { sensitivity: "base" });
+
 const sortedAll = computed(() => {
   const k = sortKey.value;
   const dir = sortDesc.value ? -1 : 1;
   const list = [...tunes.value];
-  list.sort((a, b) => dir * (k === "path" ? (a.path < b.path ? -1 : a.path > b.path ? 1 : 0) : a[k].localeCompare(b[k], undefined, { sensitivity: "base" }) || (a.path < b.path ? -1 : 1)));
+  list.sort((a, b) => dir * (k === "path" ? (a.path < b.path ? -1 : a.path > b.path ? 1 : 0) : collator.compare(a[k], b[k]) || (a.path < b.path ? -1 : 1)));
   return list;
 });
 
@@ -90,13 +107,14 @@ export async function boot() {
   favorites.value = f ?? [];
   playlists.value = p ?? [];
   history.value = h ?? [];
-  tunes.value = meta;
+  localTunes.value = meta;
   if (sl) songlengths.value = parseSonglengths(sl);
   if (st) stil.value = parseStil(st);
   if (r) roms.value = r;
   persist();
   booted.value = true;
   setupMediaSession();
+  void connectHvsc();
 }
 
 // ---------- import ----------
@@ -108,9 +126,9 @@ export async function importItems(items: ImportItem[]) {
     const expanded = await expandZips(items);
     importProgress.value = { done: 0, total: expanded.length };
     const res = await runImport(expanded, (done, total) => (importProgress.value = { done, total }));
-    const map = new Map(tunes.value.map((t) => [t.path, t]));
+    const map = new Map(localTunes.value.map((t) => [t.path, t]));
     for (const t of res.tunes) map.set(t.path, t);
-    tunes.value = [...map.values()];
+    localTunes.value = [...map.values()];
     if (res.songlengths) songlengths.value = parseSonglengths(res.songlengths);
     if (res.stil) stil.value = parseStil(res.stil);
     const extras = [res.songlengths && "song lengths", res.stil && "STIL notes"].filter(Boolean).join(" and ");
@@ -132,7 +150,7 @@ export async function wipeLibrary() {
   stop();
   await clearLibrary();
   await Promise.all([kvDelete("songlengths"), kvDelete("stil")]);
-  tunes.value = [];
+  localTunes.value = [];
   songlengths.value = null;
   stil.value = new Map();
   history.value = [];
@@ -144,6 +162,78 @@ export async function saveRoms(r: RomSet) {
   roms.value = r;
   await kvSet("roms", r);
   message.value = "ROMs saved. They apply the next time the page loads.";
+}
+
+// ---------- online HVSC catalogue ----------
+
+/** Cached copy first, then the server (and cached for next time). */
+async function tuneData(meta: TuneMeta): Promise<ArrayBuffer> {
+  const cached = await getFile(meta.path);
+  if (cached) return cached;
+  if (!meta.remote) throw new Error("file missing from library");
+  const data = await fetchRemoteTune(meta);
+  void putFile(meta.path, data.slice(0));
+  return data;
+}
+
+function prefetchNext() {
+  const path = queue[queueIndex + 1];
+  const meta = path ? tuneMap.value.get(path) : undefined;
+  if (meta?.remote) void tuneData(meta).catch(() => {});
+}
+
+function stilFor(path: string): string | undefined {
+  return stil.value.get(path) ?? remoteStil.value.get(path);
+}
+export { stilFor };
+
+/** Loads the catalogue from cache straight away, then checks the server for a newer release. */
+export async function connectHvsc(forceRefresh = false) {
+  if (!hvscAvailable || !settings.value.hvsc) {
+    remoteTunes.value = [];
+    remoteStil.value = new Map();
+    hvscStatus.value = { state: "off", text: "" };
+    return;
+  }
+  hvscStatus.value = { state: "loading", text: "Loading the HVSC catalogue…" };
+  try {
+    const [cachedText, cachedMan, cachedStil] = await Promise.all([
+      kvGet<string>("hvsc-index"),
+      kvGet<Manifest>("hvsc-manifest"),
+      kvGet<string>("hvsc-stil"),
+    ]);
+    if (cachedText && !forceRefresh) {
+      const { tunes: list, hvsc } = parseIndex(cachedText);
+      remoteTunes.value = list;
+      hvscStatus.value = { state: "ready", text: `HVSC ${hvsc} · ${list.length.toLocaleString()} tunes` };
+      if (cachedStil) remoteStil.value = parseStil(cachedStil);
+    }
+
+    let man: Manifest;
+    try {
+      man = await fetchManifest();
+    } catch (err) {
+      if (cachedText) return; // offline: keep what we have
+      throw err;
+    }
+    if (man.index !== cachedMan?.index || !cachedText) {
+      hvscStatus.value = { state: "loading", text: `Downloading HVSC ${man.hvsc} catalogue…` };
+      const text = await fetchText(man.index);
+      const { tunes: list, hvsc } = parseIndex(text);
+      remoteTunes.value = list;
+      await kvSet("hvsc-index", text);
+      if (cachedMan && cachedMan.hvsc !== man.hvsc) message.value = `HVSC updated to ${hvsc}.`;
+      hvscStatus.value = { state: "ready", text: `HVSC ${hvsc} · ${list.length.toLocaleString()} tunes` };
+    }
+    if (man.stil !== cachedMan?.stil || !cachedStil) {
+      const text = await fetchText(man.stil);
+      remoteStil.value = parseStil(text);
+      await kvSet("hvsc-stil", text);
+    }
+    await kvSet("hvsc-manifest", man);
+  } catch (err) {
+    hvscStatus.value = { state: "error", text: `Could not load the HVSC catalogue: ${err instanceof Error ? err.message : err}` };
+  }
 }
 
 // ---------- playback ----------
@@ -159,8 +249,8 @@ audio.onLoaded = (info) => {
   loading.value = false;
   const t = current.value;
   const sl = songlengths.value;
-  let len: number | null = null;
-  if (sl) len = (info.md5 ? sl.db.lengthSeconds(info.md5, info.currentSong) : null) ?? (t ? lengthForPath(sl, t.path, info.currentSong) : null);
+  let len: number | null = t?.lengths?.[info.currentSong - 1] ?? null;
+  if (len === null && sl) len = (info.md5 ? sl.db.lengthSeconds(info.md5, info.currentSong) : null) ?? (t ? lengthForPath(sl, t.path, info.currentSong) : null);
   lengthKnown.value = len !== null;
   duration.value = len ?? settings.value.defaultLengthSec;
 };
@@ -185,8 +275,7 @@ async function start(path: string, songIndex: number | null) {
   loading.value = true;
   try {
     await ensureAudio();
-    const data = await getFile(path);
-    if (!data) throw new Error("file missing from library");
+    const data = await tuneData(meta);
     if (token !== playToken) return;
     currentData = data;
     current.value = meta;
@@ -198,6 +287,7 @@ async function start(path: string, songIndex: number | null) {
     playing.value = true;
     history.value = [path, ...history.value.filter((p) => p !== path)].slice(0, 500);
     updateMediaSession();
+    prefetchNext();
   } catch (err) {
     loading.value = false;
     message.value = `Could not play: ${err instanceof Error ? err.message : err}`;

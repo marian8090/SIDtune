@@ -78,7 +78,7 @@ export function TrackList() {
           {rows.map((t, i) => {
             const idx = first + i;
             const isCur = current.value?.path === t.path;
-            const len = lengthForPath(sl, t.path, t.startSong);
+            const len = t.lengths?.[t.startSong - 1] ?? lengthForPath(sl, t.path, t.startSong);
             return (
               <div
                 key={t.path}
