@@ -116,7 +116,9 @@ export class AudioController {
     else await this.ctx.resume();
   }
 
+  /** Starts audio after a load; also wakes the worker if an earlier pause left it idle. */
   resume() {
+    this.send({ type: "pause", paused: false });
     return this.ctx.resume();
   }
 
