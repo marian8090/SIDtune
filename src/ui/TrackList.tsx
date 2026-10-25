@@ -42,6 +42,19 @@ export function TrackList() {
     if (box.current) box.current.scrollTop = 0;
   }, [view.value, sortKey.value, sortDesc.value]);
 
+  // keep the playing tune on screen when next/previous/shuffle moves it out of view
+  const playingPath = current.value?.path;
+  useEffect(() => {
+    const el = box.current;
+    if (!playingPath || !el) return;
+    const idx = visible.peek().findIndex((t) => t.path === playingPath);
+    if (idx < 0) return;
+    const top = idx * ROW;
+    if (top < el.scrollTop || top + ROW > el.scrollTop + el.clientHeight) {
+      el.scrollTop = Math.max(0, top - el.clientHeight / 2 + ROW / 2);
+    }
+  }, [playingPath]);
+
   const list = visible.value;
   const first = Math.max(0, Math.floor(scroll / ROW) - 6);
   const last = Math.min(list.length, Math.ceil((scroll + height) / ROW) + 6);
@@ -74,7 +87,7 @@ export function TrackList() {
         <span class="th c-act" />
       </div>
       <div class="tbody" ref={box} onScroll={(e) => setScroll((e.currentTarget as HTMLElement).scrollTop)}>
-        <div style={{ height: list.length * ROW, position: "relative" }}>
+        <div style={{ height: `${list.length * ROW}px`, position: "relative" }}>
           {rows.map((t, i) => {
             const idx = first + i;
             const isCur = current.value?.path === t.path;
@@ -83,7 +96,7 @@ export function TrackList() {
               <div
                 key={t.path}
                 class={`row ${isCur ? "current" : ""}`}
-                style={{ transform: `translateY(${idx * ROW}px)`, height: ROW }}
+                style={{ transform: `translateY(${idx * ROW}px)`, height: `${ROW}px` }}
                 onClick={() => playFromList(t.path)}
               >
                 <span class="idx">{isCur && playing.value ? <Eq /> : idx + 1}</span>
@@ -144,7 +157,7 @@ function PlaylistMenu() {
   const left = Math.max(8, Math.min(window.innerWidth - 228, m.x - 220));
   const top = Math.min(window.innerHeight - 260, m.y + 4);
   return (
-    <div class="popover" style={{ left, top }} onPointerDown={(e) => e.stopPropagation()}>
+    <div class="popover" style={{ left: `${left}px`, top: `${top}px` }} onPointerDown={(e) => e.stopPropagation()}>
       <div class="pop-title">Add to playlist</div>
       {playlists.value.map((p) => (
         <button key={p.id} onClick={() => { addToPlaylist(p.id, m.path); menu.value = null; }}>
