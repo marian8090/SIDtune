@@ -20,6 +20,10 @@ after HMR).
 
 - `src/audio/engine.worker.ts`: runs `libsidplayfp-wasm`'s `SidAudioEngine`, renders 1024-frame PCM chunks about 0.35 s ahead, snapshots SID
   registers with each chunk, and sends PCM straight to the worklet over a `MessageChannel`. Messages are processed one at a time.
+- `src/audio/cache.worker.ts`: second worker (own thread) that renders the whole tune into chunks and posts them to the playback worker
+  over a `MessageChannel`. The playback worker keeps them in `cache[]` and streams from there after a seek (`source = "cache"`); a seek
+  past what is rendered waits for it (`pendingSeek`). Tunes over `SEEK_CACHE_MAX_SEC` use `record` mode (remembers played audio only).
+  Anything that changes the mix (voice mute, settings, load) invalidates the cache via `resetCache`. Setting: `seekCache`.
 - `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
   generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.
 - `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
@@ -34,7 +38,7 @@ after HMR).
 - `SidAudioEngine` only creates its C++ context on the first `loadSidBuffer`. Call `setEmulationConfig` after a load, never before.
   `setSystemROMs` is fine before.
 - Song indices passed to the engine are 0-based; `TuneMeta.startSong` and `songs` are 1-based.
-- Seeking has no fast path in the bindings: forward seeks fast-forward the current context (cost = distance, via the wrapper's private
+- Without the cache, seeking has no fast path in the bindings: forward seeks fast-forward the current context (cost = distance, via the wrapper's private
   `fastForwardContext`), backward seeks reload and fast-forward from 0. reSIDfp does this at roughly 7x realtime, SIDLite much faster.
 - The wasm files are imported with `?url` in the worker so Vite emits them; the glue code's `module` import produces harmless Vite warnings.
 - Browsers throttle `requestAnimationFrame` in the preview pane to ~1 fps, so the visualiser can't be judged there.

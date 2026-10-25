@@ -76,6 +76,16 @@ export function SettingsDialog() {
         </label>
         <label class="field">
           <span>
+            Instant seeking
+            <small>
+              Renders each tune into memory in the background so seeking is immediate. Uses a second CPU thread and about 11 MB of memory per
+              minute of music (tunes up to 10 minutes, 5 on phones). Turn off to save memory and battery; seeks then take a few seconds.
+            </small>
+          </span>
+          <input type="checkbox" checked={s.seekCache} onChange={(e) => updateSettings({ seekCache: (e.currentTarget as HTMLInputElement).checked })} />
+        </label>
+        <label class="field">
+          <span>
             Default length (seconds)
             <small>Used when a tune is not in the song-length database.</small>
           </span>

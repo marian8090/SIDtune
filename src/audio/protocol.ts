@@ -2,6 +2,9 @@ import type { Settings } from "../lib/types";
 
 export type EngineSettings = Pick<Settings, "engine" | "sidModel" | "c64Model" | "digiBoost">;
 
+/** How the playback worker keeps audio around so seeks can be instant. */
+export type CacheMode = { mode: "off" } | { mode: "prerender" | "record"; sec: number };
+
 export interface TuneDetails {
   songs: number;
   currentSong: number;
@@ -16,7 +19,8 @@ export interface TuneDetails {
 export type ToWorker =
   | { type: "init"; sampleRate: number; settings: EngineSettings; roms: { kernal?: Uint8Array; basic?: Uint8Array; chargen?: Uint8Array } }
   | { type: "port"; port: MessagePort }
-  | { type: "load"; gen: number; data: ArrayBuffer; song: number; startAt: number }
+  | { type: "cache-port"; port: MessagePort }
+  | { type: "load"; gen: number; data: ArrayBuffer; song: number; startAt: number; cache: CacheMode }
   | { type: "seek"; gen: number; seconds: number }
   | { type: "pause"; paused: boolean }
   | { type: "mute"; voice: number; muted: boolean }
@@ -28,6 +32,8 @@ export type FromWorker =
   | { type: "ready" }
   | { type: "loaded"; gen: number; info: TuneDetails }
   | { type: "seeked"; gen: number }
+  /** The worker is busy catching its emulator up (e.g. after muting a voice mid-tune). */
+  | { type: "working"; gen: number }
   | { type: "error"; gen: number; message: string }
   | { type: "meta"; gen: number; frame: number; regs: Uint8Array[] }
   | { type: "eof"; gen: number; frame: number }

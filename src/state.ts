@@ -1,13 +1,13 @@
 import { computed, effect, signal } from "@preact/signals";
 import toneUrl from "libsidplayfp-wasm/fixtures/test-tone-c4.sid?url";
 import { AudioController, type RomSet } from "./audio/controller";
-import type { TuneDetails } from "./audio/protocol";
+import type { CacheMode, TuneDetails } from "./audio/protocol";
 import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet, putFile } from "./lib/db";
 import { fetchManifest, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type Manifest } from "./lib/hvsc";
 import { expandZips, runImport, type ImportItem } from "./lib/importer";
 import { lengthForPath, parseSonglengths, type Songlengths } from "./lib/songlengths";
 import { parseStil } from "./lib/stil";
-import { DEFAULT_SETTINGS, type Playlist, type Settings, type TuneMeta } from "./lib/types";
+import { DEFAULT_SETTINGS, SEEK_CACHE_MAX_SEC, type Playlist, type Settings, type TuneMeta } from "./lib/types";
 
 export type View = "all" | "favorites" | "history" | `pl:${string}`;
 export type SortKey = "path" | "title" | "author" | "released";
@@ -259,10 +259,22 @@ audio.onSeeked = () => {
   loading.value = false;
 };
 
+audio.onWorking = () => {
+  loading.value = true;
+};
+
 audio.onError = (m) => {
   loading.value = false;
   message.value = `Could not play this tune: ${m}`;
 };
+
+/** Decides how much of a tune to keep rendered in memory for instant seeking. */
+function cacheFor(meta: TuneMeta, songIndex: number): CacheMode {
+  const s = settings.value;
+  if (!s.seekCache) return { mode: "off" };
+  const len = meta.lengths?.[songIndex] ?? lengthForPath(songlengths.value, meta.path, songIndex + 1) ?? s.defaultLengthSec;
+  return len <= SEEK_CACHE_MAX_SEC ? { mode: "prerender", sec: len + 2 } : { mode: "record", sec: SEEK_CACHE_MAX_SEC };
+}
 
 async function ensureAudio() {
   await audio.init(settings.value, roms.value, settings.value.volume);
@@ -282,7 +294,7 @@ async function start(path: string, songIndex: number | null) {
     song.value = songIndex ?? meta.startSong - 1;
     position.value = 0;
     details.value = null;
-    audio.load(data, song.value);
+    audio.load(data, song.value, 0, cacheFor(meta, song.value));
     await audio.resume();
     playing.value = true;
     history.value = [path, ...history.value.filter((p) => p !== path)].slice(0, 500);
@@ -315,7 +327,7 @@ export function selectSong(i: number) {
   song.value = i;
   position.value = 0;
   loading.value = true;
-  audio.load(currentData, i);
+  audio.load(currentData, i, 0, current.value ? cacheFor(current.value, i) : undefined);
   void audio.resume();
   playing.value = true;
 }
@@ -388,13 +400,13 @@ export function setVolume(v: number) {
 export function updateSettings(patch: Partial<Settings>) {
   const before = settings.value;
   settings.value = { ...before, ...patch };
-  const engineChanged = (["engine", "sidModel", "c64Model", "digiBoost"] as const).some((k) => before[k] !== settings.value[k]);
+  const engineChanged = (["engine", "sidModel", "c64Model", "digiBoost", "seekCache"] as const).some((k) => before[k] !== settings.value[k]);
   if (engineChanged) {
     audio.applySettings(settings.value);
     if (current.value && currentData) {
       const at = position.value;
       loading.value = true;
-      audio.load(currentData, song.value, at);
+      audio.load(currentData, song.value, at, cacheFor(current.value, song.value));
     }
   }
 }

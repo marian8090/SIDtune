@@ -14,7 +14,7 @@ favorites. Nothing is uploaded, and no music is bundled.
 - Instant search by title, composer, year or path across the whole collection; sortable, virtualised list
 - Playlists, favorites, history; the queue follows the list you started from; shuffle and repeat
 - Song lengths from `Songlengths.md5`, STIL notes from `STIL.txt` (both picked up automatically from an imported HVSC folder)
-- Seek anywhere in a tune, subtunes, per-voice muting
+- Instant seeking: tunes are rendered into memory by a background worker (can be switched off in Settings), subtunes, per-voice muting
 - Now-playing view with a live pitch roll for every voice of every SID chip, plus a scope
 - SID chip (6581/8580) and PAL/NTSC overrides, digi boost
 - Export the current tune to WAV
@@ -45,6 +45,7 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
                              renders ~0.35 s ahead        reports position
 ```
 
+- `src/audio/cache.worker.ts` pre-renders the whole tune on a second thread; `engine.worker.ts` streams from that cache after a seek.
 - `src/audio/engine.worker.ts` renders PCM in 1024-frame chunks and snapshots the SID registers with each chunk, so the visualiser stays in
   sync with what you hear.
 - `public/sid-worklet.js` is an `AudioWorkletProcessor` fed over a `MessageChannel` straight from the worker.
@@ -52,9 +53,9 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 
 ## Known limitations and ideas
 
-- Seeking runs the emulator up to the target. Forward seeks cost the distance travelled, backward seeks restart the tune. reSIDfp
-  fast-forwards at roughly 7× realtime in this path, so a seek far into a long tune can take several seconds (a spinner is shown).
-  SIDLite is much faster.
+- Seeking is instant once the background render has caught up (about 7x realtime on reSIDfp, so a few seconds after a tune starts, longer
+  for long tunes). Seeking ahead of that, muting a voice after a seek, or turning Instant seeking off falls back to running the emulator up
+  to the target, which shows a spinner. The cache costs about 11 MB per minute of music and a second CPU thread.
 - Export is WAV only (no FLAC/OGG yet), and the engine is stock libsidplayfp rather than ultraSID's libSidplayEZ fork.
 - No C64 title screens, screenshots or portraits, and no CRT view.
 - The iOS app is not started. The audio engine and UI logic are reusable; a native shell (SwiftUI plus the same emulation core) or a

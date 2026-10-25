@@ -27,6 +27,8 @@ export interface Settings {
   digiBoost: boolean;
   /** Browse the online HVSC catalogue when the site provides one. */
   hvsc: boolean;
+  /** Pre-render tunes in the background so seeking is instant (uses memory and a second thread). */
+  seekCache: boolean;
   defaultLengthSec: number;
   volume: number;
   shuffle: boolean;
@@ -39,6 +41,9 @@ export interface Playlist {
   paths: string[];
 }
 
+/** Longest tune (seconds) kept fully in memory for instant seeking; touch devices get a smaller budget. */
+export const SEEK_CACHE_MAX_SEC = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? 300 : 600;
+
 /** Phones and tablets get the lighter engine so playback keeps up in real time. */
 const touchDevice = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
 
@@ -48,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   c64Model: "auto",
   digiBoost: true,
   hvsc: true,
+  seekCache: true,
   defaultLengthSec: 180,
   volume: 0.8,
   shuffle: false,

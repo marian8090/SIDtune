@@ -1,4 +1,4 @@
-import type { EngineSettings, FromWorker, LevelMessage, ToWorker, TuneDetails } from "./protocol";
+import type { CacheMode, EngineSettings, FromWorker, LevelMessage, ToWorker, TuneDetails } from "./protocol";
 
 export interface RomSet {
   kernal?: Uint8Array;
@@ -18,6 +18,7 @@ export class AudioController {
   private gain!: GainNode;
   private node!: AudioWorkletNode;
   private worker!: Worker;
+  private cacheWorker!: Worker;
   private ready: Promise<void> | null = null;
 
   private gen = 0;
@@ -30,6 +31,7 @@ export class AudioController {
 
   onLoaded: (info: TuneDetails) => void = () => {};
   onSeeked: () => void = () => {};
+  onWorking: () => void = () => {};
   onError: (message: string) => void = () => {};
 
   /** Safe to call repeatedly; must first run inside a user gesture. */
@@ -55,6 +57,11 @@ export class AudioController {
     this.node.port.onmessage = (e: MessageEvent<LevelMessage>) => {
       if (e.data.gen === this.gen) this.playedFrames = e.data.played;
     };
+    // a second thread pre-renders whole tunes so seeking can be instant
+    this.cacheWorker = new Worker(new URL("./cache.worker.ts", import.meta.url), { type: "module" });
+    const cacheChannel = new MessageChannel();
+    this.cacheWorker.postMessage({ type: "port", port: cacheChannel.port1 }, [cacheChannel.port1]);
+    this.send({ type: "cache-port", port: cacheChannel.port2 }, [cacheChannel.port2]);
     this.worker.onmessage = (e: MessageEvent<FromWorker>) => this.fromWorker(e.data);
     this.send({ type: "init", sampleRate: this.ctx.sampleRate, settings, roms });
   }
@@ -76,6 +83,9 @@ export class AudioController {
         break;
       case "loaded":
         if (m.gen === this.gen) this.onLoaded(m.info);
+        break;
+      case "working":
+        if (m.gen === this.gen) this.onWorking();
         break;
       case "seeked":
         if (m.gen === this.gen) this.onSeeked();
@@ -99,9 +109,9 @@ export class AudioController {
     this.node.port.postMessage({ type: "flush", gen: this.gen });
   }
 
-  load(data: ArrayBuffer, song: number, startAt = 0) {
+  load(data: ArrayBuffer, song: number, startAt = 0, cache: CacheMode = { mode: "off" }) {
     this.newGeneration(startAt);
-    this.send({ type: "load", gen: this.gen, data: data.slice(0), song, startAt });
+    this.send({ type: "load", gen: this.gen, data: data.slice(0), song, startAt, cache });
   }
 
   seek(seconds: number) {
