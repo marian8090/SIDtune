@@ -1,0 +1,54 @@
+# SIDtune
+
+Browser-based Commodore 64 SID music player (Preact + TypeScript + Vite). Inspired by ultraSID, but independent: no ultraSID code is used.
+GPL-3.0-or-later. Everything runs client-side; library, playlists and settings live in IndexedDB.
+
+## Commands
+
+```bash
+npm run dev         # http://localhost:5173, also serves ./hvsc-build at /hvsc
+npm run typecheck   # tsc --noEmit
+npm run build       # typecheck + static site in dist/ (relative base, host anywhere)
+node tools/build-hvsc.mjs <path to C64Music> [outDir]   # builds the online catalogue (Node >= 22.18)
+```
+
+There is no test suite. Verify changes by running the dev server and playing audio in the browser. In dev, `window.__sidtune` exposes
+`src/state.ts` for driving the app from the console (use it instead of `import('/src/state.ts')`, which can create a second module instance
+after HMR).
+
+## Architecture
+
+- `src/audio/engine.worker.ts`: runs `libsidplayfp-wasm`'s `SidAudioEngine`, renders 1024-frame PCM chunks about 0.35 s ahead, snapshots SID
+  registers with each chunk, and sends PCM straight to the worklet over a `MessageChannel`. Messages are processed one at a time.
+- `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
+  generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.
+- `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
+- `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic. `src/ui/*` is presentational Preact.
+- `src/lib/`: PSID header parser, IndexedDB wrapper (`meta`, `files`, `kv` stores), importers (folder, drop, zip), Songlengths/STIL parsers,
+  and the online HVSC client (`hvsc.ts`).
+- Tunes are keyed by HVSC-style path (`/MUSICIANS/H/Hubbard_Rob/Commando.sid`). Favorites, playlists and history store paths. Imported tunes
+  override online catalogue entries with the same path.
+
+## Things that bite
+
+- `SidAudioEngine` only creates its C++ context on the first `loadSidBuffer`. Call `setEmulationConfig` after a load, never before.
+  `setSystemROMs` is fine before.
+- Song indices passed to the engine are 0-based; `TuneMeta.startSong` and `songs` are 1-based.
+- Seeking has no fast path in the bindings: forward seeks fast-forward the current context (cost = distance, via the wrapper's private
+  `fastForwardContext`), backward seeks reload and fast-forward from 0. reSIDfp does this at roughly 7x realtime, SIDLite much faster.
+- The wasm files are imported with `?url` in the worker so Vite emits them; the glue code's `module` import produces harmless Vite warnings.
+- Browsers throttle `requestAnimationFrame` in the preview pane to ~1 fps, so the visualiser can't be judged there.
+- `pkill -f vite` or `pgrep -f vite` inside a Bash tool call matches the shell itself; stop servers by port instead.
+
+## Online HVSC catalogue
+
+Enabled when `VITE_HVSC_URL` is set at build time (defaults to `/hvsc` in dev, off in production). The tunes are copyrighted and HVSC's
+disclaimer limits use to private enjoyment: do not publish pack files publicly or suggest doing so without permission from HVSC / rights
+holders. See `docs/HVSC-HOSTING.md`. `hvsc-build/` is git-ignored (hundreds of MB).
+
+## Conventions
+
+- Match the existing style: small modules, no comments that restate code, TypeScript strict (including `noUnusedLocals`).
+- Commit or push only when asked. Remote is `origin` = github.com/marian8090/SIDtune (main).
+- Not started: iOS app, FLAC/OGG export, title screens/CRT view. Possible engine upgrade: build ultraSID's libSidplayEZ to WASM (needs
+  Emscripten and CMake, not installed here).
