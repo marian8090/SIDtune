@@ -1,3 +1,4 @@
+import { signal } from "@preact/signals";
 import {
   current,
   duration,
@@ -18,6 +19,9 @@ import {
 } from "../state";
 import { Expand, Heart, HeartOutline, Next, Pause, Play, Prev, Repeat, Shuffle, Volume } from "./Icons";
 import { coverStyle, initials } from "./util";
+
+/** Slider value while the user is dragging, so playback updates do not yank the thumb back. */
+const scrub = signal<number | null>(null);
 
 export function PlayerBar() {
   const t = current.value;
@@ -63,17 +67,21 @@ export function PlayerBar() {
           </button>
         </div>
         <div class="seek">
-          <span>{formatTime(position.value)}</span>
+          <span>{formatTime(scrub.value ?? position.value)}</span>
           <input
             type="range"
             min={0}
             max={Math.max(1, duration.value)}
             step={1}
-            value={Math.min(position.value, duration.value)}
+            value={Math.min(scrub.value ?? position.value, duration.value)}
             disabled={!t}
             aria-label="Seek"
-            style={{ "--p": `${(Math.min(position.value, duration.value) / Math.max(1, duration.value)) * 100}%` }}
-            onChange={(e) => seek(Number((e.currentTarget as HTMLInputElement).value))}
+            style={{ "--p": `${(Math.min(scrub.value ?? position.value, duration.value) / Math.max(1, duration.value)) * 100}%` }}
+            onInput={(e) => (scrub.value = Number((e.currentTarget as HTMLInputElement).value))}
+            onChange={(e) => {
+              scrub.value = null;
+              seek(Number((e.currentTarget as HTMLInputElement).value));
+            }}
           />
           <span>{formatTime(duration.value)}</span>
         </div>
