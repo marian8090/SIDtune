@@ -26,6 +26,7 @@ after HMR).
   Anything that changes the mix (voice mute, settings, load) invalidates the cache via `resetCache`. Setting: `seekCache`.
 - `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
   generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.
+- `src/audio/fx.ts`: the audio quality modes as a Web Audio graph between the worklet and the volume gain (LR8 crossover, wide-mono, ping-pong delay, convolver reverb, 3-band EQ, plus the REAL speaker chain). Parameter values come from ultraSID's `SIDEffects`/`FXTuning`; mode changes glide via `setTargetAtTime`. Web Audio lowpass/highpass `Q` is in dB, peaking `Q` is linear.
 - `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
 - `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic. `src/ui/*` is presentational Preact.
 - `src/lib/`: PSID header parser, IndexedDB wrapper (`meta`, `files`, `kv` stores), importers (folder, drop, zip), Songlengths/STIL parsers,

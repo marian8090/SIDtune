@@ -246,6 +246,8 @@ const played: string[] = [];
 
 audio.onLoaded = (info) => {
   details.value = info;
+  audio.fx?.setMono(info.sidChips <= 1);
+  audio.fx?.setMains(info.clock === "NTSC" ? 60 : 50);
   loading.value = false;
   const t = current.value;
   const sl = songlengths.value;
@@ -277,7 +279,7 @@ function cacheFor(meta: TuneMeta, songIndex: number): CacheMode {
 }
 
 async function ensureAudio() {
-  await audio.init(settings.value, roms.value, settings.value.volume);
+  await audio.init(settings.value, roms.value, settings.value.volume, { mode: settings.value.fxMode, eq: settings.value.eq });
 }
 
 async function start(path: string, songIndex: number | null) {
@@ -397,9 +399,13 @@ export function setVolume(v: number) {
   audio.setVolume(v);
 }
 
+export const soundMenuOpen = signal(false);
+
 export function updateSettings(patch: Partial<Settings>) {
   const before = settings.value;
   settings.value = { ...before, ...patch };
+  if (patch.fxMode) audio.fx?.setMode(patch.fxMode);
+  if (patch.eq) audio.fx?.setEq(patch.eq);
   const engineChanged = (["engine", "sidModel", "c64Model", "digiBoost", "seekCache"] as const).some((k) => before[k] !== settings.value[k]);
   if (engineChanged) {
     audio.applySettings(settings.value);

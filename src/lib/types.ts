@@ -20,11 +20,17 @@ export interface TuneMeta {
   lengths?: number[];
 }
 
+export type FxMode = "real" | "pure" | "magic" | "epic" | "mythic";
+
 export interface Settings {
   engine: "residfp" | "sidlite";
   sidModel: "auto" | "MOS6581" | "MOS8580";
   c64Model: "auto" | "PAL" | "NTSC";
   digiBoost: boolean;
+  /** Post-processing of the chip output, see src/audio/fx.ts. */
+  fxMode: FxMode;
+  /** Equalizer offsets in dB for the low (200 Hz), mid (1 kHz) and high (4 kHz) bands. */
+  eq: [number, number, number];
   /** Browse the online HVSC catalogue when the site provides one. */
   hvsc: boolean;
   /** Pre-render tunes in the background so seeking is instant (uses memory and a second thread). */
@@ -52,6 +58,8 @@ export const DEFAULT_SETTINGS: Settings = {
   sidModel: "auto",
   c64Model: "auto",
   digiBoost: true,
+  fxMode: "magic",
+  eq: [0, 0, 0],
   hvsc: true,
   seekCache: true,
   defaultLengthSec: 180,

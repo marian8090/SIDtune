@@ -16,6 +16,7 @@ favorites. Nothing is uploaded, and no music is bundled.
 - Song lengths from `Songlengths.md5`, STIL notes from `STIL.txt` (both picked up automatically from an imported HVSC folder)
 - Instant seeking: tunes are rendered into memory by a background worker (can be switched off in Settings), subtunes, per-voice muting
 - Now-playing view with a live pitch roll for every voice of every SID chip, plus a scope
+- Audio quality modes modelled on ultraSID: Real (cheap TV speaker), Pure, Magic (default), Epic and Mythic, plus a 3-band equalizer (button next to the volume, `Ctrl+E`)
 - SID chip (6581/8580) and PAL/NTSC overrides, digi boost
 - Export the current tune to WAV
 - Media-key and lock-screen controls (Media Session API)
@@ -56,6 +57,7 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 - Seeking is instant once the background render has caught up (about 7x realtime on reSIDfp, so a few seconds after a tune starts, longer
   for long tunes). Seeking ahead of that, muting a voice after a seek, or turning Instant seeking off falls back to running the emulator up
   to the target, which shows a spinner. The cache costs about 11 MB per minute of music and a second CPU thread.
+- The audio quality modes use ultraSID's parameter values but a Web Audio reverb (synthetic impulse response) instead of its MVerb, so the room sounds similar rather than identical. There is no loudness normalisation yet, and WAV export is the unprocessed chip output.
 - Export is WAV only (no FLAC/OGG yet), and the engine is stock libsidplayfp rather than ultraSID's libSidplayEZ fork.
 - No C64 title screens, screenshots or portraits, and no CRT view.
 - The iOS app is not started. The audio engine and UI logic are reusable; a native shell (SwiftUI plus the same emulation core) or a

@@ -18,6 +18,7 @@ import {
   updateSettings,
 } from "../state";
 import { Expand, Heart, HeartOutline, Next, Pause, Play, Prev, Repeat, Shuffle, Volume } from "./Icons";
+import { SoundButton } from "./SoundMenu";
 import { coverStyle, initials } from "./util";
 
 /** Slider value while the user is dragging, so playback updates do not yank the thumb back. */
@@ -89,6 +90,7 @@ export function PlayerBar() {
       </div>
 
       <div class="extras">
+        <SoundButton />
         <Volume />
         <input
           type="range"

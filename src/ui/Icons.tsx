@@ -6,8 +6,8 @@ const p = (d: string) => (props: { class?: string }) => (
 
 export const Play = p("M8 5v14l11-7z");
 export const Pause = p("M6 5h4v14H6zM14 5h4v14h-4z");
-export const Next = p("M6 18l8.5-6L6 6zM16 6h2v12h-2z");
-export const Prev = p("M6 6h2v12H6zM9.5 12l8.5 6V6z");
+export const Next = p("M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z");
+export const Prev = p("M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z");
 export const Shuffle = p("M10.6 9.2L5.4 4 4 5.4l5.2 5.2zM14.5 4l2.05 2.05L4 18.6 5.4 20l12.55-12.55L20 9.5V4zM14.8 13.4l-1.4 1.4 3.55 3.55L14.5 20H20v-5.5l-2.05 2.05z");
 export const Repeat = p("M7 7h10v3l4-4-4-4v3H5v6h2zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2z");
 export const Heart = p("M12 21l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.18z");

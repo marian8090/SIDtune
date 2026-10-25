@@ -1,11 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
 import { itemsFromDrop } from "../lib/importer";
-import { boot, booted, hvscStatus, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
+import { boot, booted, hvscStatus, soundMenuOpen, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
 import { Menu, Search } from "./Icons";
 import { Welcome } from "./Import";
 import { NowPlaying } from "./NowPlaying";
 import { PlayerBar } from "./PlayerBar";
 import { SettingsDialog } from "./SettingsDialog";
+import { SoundMenu } from "./SoundMenu";
 import { Sidebar } from "./Sidebar";
 import { TrackList } from "./TrackList";
 
@@ -18,6 +19,11 @@ export function App() {
   useEffect(() => {
     void boot();
     const key = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "e") {
+        e.preventDefault();
+        soundMenuOpen.value = !soundMenuOpen.value;
+        return;
+      }
       const el = e.target as HTMLElement;
       if (el.matches("input:not([type=range]),textarea,select")) {
         if (e.key === "Escape") (el as HTMLElement).blur();
@@ -31,7 +37,10 @@ export function App() {
       else if (e.key === "/") {
         e.preventDefault();
         document.querySelector<HTMLInputElement>(".search input")?.focus();
-      } else if (e.key === "Escape") nowPlayingOpen.value = false;
+      } else if (e.key === "Escape") {
+        nowPlayingOpen.value = false;
+        soundMenuOpen.value = false;
+      }
     };
     window.addEventListener("keydown", key);
     return () => window.removeEventListener("keydown", key);
@@ -91,6 +100,7 @@ export function App() {
       </main>
       <NowPlaying />
       <PlayerBar />
+      <SoundMenu />
       <SettingsDialog />
       {message.value && <div class="toast" role="status">{message.value}</div>}
       {drag && <div class="dropzone">Drop SID files, a folder or a zip to add them</div>}

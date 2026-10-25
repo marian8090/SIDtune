@@ -1,3 +1,5 @@
+import { SidFx } from "./fx";
+import type { FxMode } from "../lib/types";
 import type { CacheMode, EngineSettings, FromWorker, LevelMessage, ToWorker, TuneDetails } from "./protocol";
 
 export interface RomSet {
@@ -15,6 +17,7 @@ interface Meta {
 export class AudioController {
   ctx!: AudioContext;
   analyser!: AnalyserNode;
+  fx!: SidFx;
   private gain!: GainNode;
   private node!: AudioWorkletNode;
   private worker!: Worker;
@@ -35,11 +38,11 @@ export class AudioController {
   onError: (message: string) => void = () => {};
 
   /** Safe to call repeatedly; must first run inside a user gesture. */
-  init(settings: EngineSettings, roms: RomSet, volume: number): Promise<void> {
-    return (this.ready ??= this.setup(settings, roms, volume));
+  init(settings: EngineSettings, roms: RomSet, volume: number, fx: { mode: FxMode; eq: [number, number, number] }): Promise<void> {
+    return (this.ready ??= this.setup(settings, roms, volume, fx));
   }
 
-  private async setup(settings: EngineSettings, roms: RomSet, volume: number) {
+  private async setup(settings: EngineSettings, roms: RomSet, volume: number, fx: { mode: FxMode; eq: [number, number, number] }) {
     this.ctx = new AudioContext({ latencyHint: "playback" });
     await this.ctx.audioWorklet.addModule(`${import.meta.env.BASE_URL}sid-worklet.js`);
     this.node = new AudioWorkletNode(this.ctx, "sid-processor", { outputChannelCount: [2] });
@@ -47,7 +50,12 @@ export class AudioController {
     this.gain.gain.value = volume;
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 2048;
-    this.node.connect(this.gain).connect(this.analyser);
+    this.fx = new SidFx(this.ctx);
+    this.fx.setMode(fx.mode, true);
+    this.fx.setEq(fx.eq, true);
+    this.node.connect(this.fx.input);
+    this.fx.output.connect(this.gain);
+    this.gain.connect(this.analyser);
     this.gain.connect(this.ctx.destination);
 
     this.worker = new Worker(new URL("./engine.worker.ts", import.meta.url), { type: "module" });
