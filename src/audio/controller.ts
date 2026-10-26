@@ -39,11 +39,17 @@ export class AudioController {
 
   /** Safe to call repeatedly; must first run inside a user gesture. */
   init(settings: EngineSettings, roms: RomSet, volume: number, fx: { mode: FxMode; eq: [number, number, number] }): Promise<void> {
+    // iOS only lets a context start inside the gesture, and later awaits (fetching the tune) leave it
+    if (this.ctx && this.ctx.state !== "running") void this.ctx.resume();
     return (this.ready ??= this.setup(settings, roms, volume, fx));
   }
 
   private async setup(settings: EngineSettings, roms: RomSet, volume: number, fx: { mode: FxMode; eq: [number, number, number] }) {
+    // without this iOS treats Web Audio as "ambient" and the silent switch mutes it
+    const session = (navigator as Navigator & { audioSession?: { type: string } }).audioSession;
+    if (session) session.type = "playback";
     this.ctx = new AudioContext({ latencyHint: "playback" });
+    void this.ctx.resume();
     await this.ctx.audioWorklet.addModule(`${import.meta.env.BASE_URL}sid-worklet.js`);
     this.node = new AudioWorkletNode(this.ctx, "sid-processor", { outputChannelCount: [2] });
     this.gain = this.ctx.createGain();
