@@ -209,7 +209,7 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
 }
 
 @media (max-width: 800px) {
-  :root { --bar-h: 128px; --sidebar-w: 0px; }
+  :root { --bar-h: calc(140px + env(safe-area-inset-bottom)); --sidebar-w: 0px; }
   .app, .app.np-open { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "bar"; }
   .sidebar { position: fixed; z-index: 40; left: 0; top: 0; bottom: 0; width: 270px; transform: translateX(-100%); transition: transform 0.2s; padding-top: 24px; }
   .sidebar.open { transform: none; }
@@ -220,18 +220,21 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
   .search { width: 100%; margin: 0; order: 3; }
   .tracklist { padding: 0 4px; }
   .thead { display: none; }
-  .row { grid-template-columns: 34px minmax(0, 1fr) 70px 64px; gap: 8px; padding: 0 8px; }
+  .row { grid-template-columns: 14px minmax(0, 1fr) 40px 64px; gap: 8px; padding: 0 8px; }
+  .row .idx { font-size: 0; } /* row numbers don't fit; keep only the playing indicator */
+  .row .c-len { text-align: right; }
   .row .c-author, .row .c-rel { display: none; }
   .c-title .sub { display: block; }
   .c-act .icon-btn { opacity: 1; }
   .c-len small { display: none; }
-  .playerbar { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 8px; padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
+  .playerbar { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 8px; padding: 8px 18px calc(8px + env(safe-area-inset-bottom)); }
   .playerbar .now { grid-column: 1; grid-row: 1; }
   .playerbar .heart { display: none; }
   .extras { grid-column: 2; grid-row: 1; }
   .extras .vol, .extras svg { display: none; }
   .transport { grid-column: 1 / -1; grid-row: 2; }
   .buttons { gap: 14px; }
+  .seek { font-size: 13px; gap: 12px; }
   .nowplaying { width: 100%; bottom: var(--bar-h); }
   .field { flex-wrap: wrap; }
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 import { itemsFromDrop } from "../lib/importer";
+import { touchDevice } from "../lib/types";
 import { boot, booted, hvscStatus, soundMenuOpen, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
 import { Menu, Search } from "./Icons";
 import { Welcome } from "./Import";
@@ -91,7 +92,7 @@ export function App() {
               <h1>{view.value.startsWith("pl:") ? "Playlist" : title}</h1>
               <label class="search">
                 <Search />
-                <input placeholder="Search title, composer or year  ( / )" value={query.value} onInput={(e) => (query.value = (e.currentTarget as HTMLInputElement).value)} />
+                <input placeholder={touchDevice ? "Search title, composer or year" : "Search title, composer or year  ( / )"} value={query.value} onInput={(e) => (query.value = (e.currentTarget as HTMLInputElement).value)} />
               </label>
             </div>
             <TrackList />

@@ -51,7 +51,7 @@ export interface Playlist {
 export const SEEK_CACHE_MAX_SEC = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? 300 : 600;
 
 /** Phones and tablets get the lighter engine so playback keeps up in real time. */
-const touchDevice = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
+export const touchDevice = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches;
 
 export const DEFAULT_SETTINGS: Settings = {
   engine: touchDevice ? "sidlite" : "residfp",
