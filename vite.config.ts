@@ -37,7 +37,14 @@ function hvscDev(): Plugin {
 export default defineConfig({
   base: "./",
   plugins: [hvscDev()],
-  worker: { format: "es" },
+  worker: {
+    format: "es",
+    // The library loads SIDLite with a dynamic import. If that chunk imports from the worker entry, WebKit evaluates the
+    // worker a second time, and the copy with empty state takes over onmessage. Keep shared code out of the entry.
+    rolldownOptions: {
+      output: { codeSplitting: { groups: [{ name: "sid-shared", test: /libsidplayfp-wasm[\\/]dist[\\/](?!sidlite[\\/]).*\.js$|rolldown:runtime/ }] } },
+    },
+  },
   build: { target: "es2022" },
   esbuild: { jsx: "automatic", jsxImportSource: "preact" },
 });
