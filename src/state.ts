@@ -1,6 +1,7 @@
 import { computed, effect, signal } from "@preact/signals";
 import toneUrl from "libsidplayfp-wasm/fixtures/test-tone-c4.sid?url";
 import { AudioController, type RomSet } from "./audio/controller";
+import { exportAudio, type AudioFormat } from "./audio/export";
 import type { CacheMode, TuneDetails } from "./audio/protocol";
 import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet, putFile } from "./lib/db";
 import { fetchManifest, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type Manifest } from "./lib/hvsc";
@@ -463,21 +464,48 @@ export function renamePlaylist(id: string, name: string) {
 
 // ---------- export ----------
 
-export async function exportCurrentWav() {
-  const t = current.value;
-  if (!t || !currentData) return;
-  message.value = "Rendering WAV…";
-  const wav = await audio.exportWav(currentData, song.value, duration.value);
-  if (!wav) {
-    message.value = "Export failed.";
-    return;
-  }
+export type DownloadFormat = "sid" | AudioFormat;
+export const exporting = signal(false);
+
+function save(blob: Blob, name: string) {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([wav], { type: "audio/wav" }));
-  a.download = `${t.title.replace(/[^\w.-]+/g, "_")}${t.songs > 1 ? `_${song.value + 1}` : ""}.wav`;
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
-  message.value = "WAV saved.";
+}
+
+export async function downloadCurrent(format: DownloadFormat) {
+  const t = current.value;
+  if (!t || !currentData || exporting.value) return;
+  if (format === "sid") {
+    save(new Blob([currentData], { type: "application/octet-stream" }), t.path.split("/").pop() || "tune.sid");
+    return;
+  }
+  const label = format.toUpperCase();
+  const multi = (details.value?.songs ?? t.songs) > 1;
+  exporting.value = true;
+  message.value = `Rendering ${label}…`;
+  try {
+    const blob = await exportAudio(
+      {
+        format,
+        data: currentData.slice(0),
+        song: song.value,
+        seconds: duration.value,
+        settings: settings.value,
+        roms: roms.value,
+        tags: { title: t.title, artist: t.author, released: t.released, track: multi ? song.value + 1 : undefined },
+      },
+      (stage, f) => (message.value = `${stage === "render" ? "Rendering" : "Encoding"} ${label}… ${Math.round(f * 100)}%`),
+    );
+    save(blob, `${t.title.replace(/[^\w.-]+/g, "_")}${multi ? `_${song.value + 1}` : ""}.${format}`);
+    message.value = `${label} saved.`;
+  } catch (err) {
+    message.value = `Export failed: ${err instanceof Error ? err.message : err}`;
+  } finally {
+    exporting.value = false;
+  }
 }
 
 // ---------- media session ----------

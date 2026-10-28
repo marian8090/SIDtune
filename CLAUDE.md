@@ -27,6 +27,9 @@ after HMR).
 - `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
   generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.
 - `src/audio/fx.ts`: the audio quality modes as a Web Audio graph between the worklet and the volume gain (LR8 crossover, wide-mono, ping-pong delay, convolver reverb, 3-band EQ, plus the REAL speaker chain). Parameter values come from ultraSID's `SIDEffects`/`FXTuning`; mode changes glide via `setTargetAtTime`. Web Audio lowpass/highpass `Q` is in dB, peaking `Q` is linear.
+- `src/audio/export.worker.ts`: throwaway worker per download that renders the current subtune at 44.1 kHz and encodes WAV, FLAC
+  (own encoder in `flac.ts`) or MP3 (`@breezystack/lamejs`, 256 kbps) with tags, so playback keeps running. Exports are the raw
+  emulator output: no voice mutes, no audio quality mode/EQ. "Original SID" just saves the loaded bytes.
 - `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
 - `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic. `src/ui/*` is presentational Preact.
 - `src/lib/`: PSID header parser, IndexedDB wrapper (`meta`, `files`, `kv` stores), importers (folder, drop, zip), Songlengths/STIL parsers,
@@ -55,5 +58,5 @@ holders. See `docs/HVSC-HOSTING.md`. `hvsc-build/` is git-ignored (hundreds of M
 
 - Match the existing style: small modules, no comments that restate code, TypeScript strict (including `noUnusedLocals`).
 - Commit or push only when asked. Remote is `origin` = github.com/marian8090/SIDtune (main).
-- Not started: iOS app, FLAC/OGG export, title screens/CRT view. Possible engine upgrade: build ultraSID's libSidplayEZ to WASM (needs
+- Not started: iOS app, Ogg/Opus export, title screens/CRT view. Possible engine upgrade: build ultraSID's libSidplayEZ to WASM (needs
   Emscripten and CMake, not installed here).

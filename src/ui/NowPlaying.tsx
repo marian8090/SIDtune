@@ -1,7 +1,9 @@
 import {
   current,
   details,
-  exportCurrentWav,
+  downloadCurrent,
+  exporting,
+  type DownloadFormat,
   favoriteSet,
   nowPlayingOpen,
   playlists,
@@ -14,7 +16,7 @@ import {
   voiceMuted,
   lengthKnown,
 } from "../state";
-import { Close, Download, Heart, HeartOutline } from "./Icons";
+import { Close, Heart, HeartOutline } from "./Icons";
 import { Viz } from "./Viz";
 import { coverStyle, describe, initials } from "./util";
 
@@ -73,9 +75,23 @@ export function NowPlaying() {
           <button class="btn" onClick={() => toggleFavorite(t.path)}>
             {favoriteSet.value.has(t.path) ? <Heart /> : <HeartOutline />} Favorite
           </button>
-          <button class="btn" onClick={() => void exportCurrentWav()}>
-            <Download /> Export WAV
-          </button>
+          <select
+            class="input"
+            value=""
+            disabled={exporting.value}
+            aria-label="Download"
+            onChange={(e) => {
+              const f = (e.currentTarget as HTMLSelectElement).value as DownloadFormat | "";
+              (e.currentTarget as HTMLSelectElement).value = "";
+              if (f) void downloadCurrent(f);
+            }}
+          >
+            <option value="">{exporting.value ? "Exporting…" : "Download…"}</option>
+            <option value="sid">Original SID file</option>
+            <option value="flac">FLAC (lossless)</option>
+            <option value="wav">WAV (uncompressed)</option>
+            <option value="mp3">MP3 (256 kbps)</option>
+          </select>
           {playlists.value.length > 0 && (
             <select
               class="input"

@@ -24,8 +24,7 @@ export type ToWorker =
   | { type: "seek"; gen: number; seconds: number }
   | { type: "pause"; paused: boolean }
   | { type: "mute"; voice: number; muted: boolean }
-  | { type: "settings"; settings: EngineSettings }
-  | { type: "export"; id: number; data: ArrayBuffer; song: number; seconds: number };
+  | { type: "settings"; settings: EngineSettings };
 
 /** worker -> main */
 export type FromWorker =
@@ -36,8 +35,7 @@ export type FromWorker =
   | { type: "working"; gen: number }
   | { type: "error"; gen: number; message: string }
   | { type: "meta"; gen: number; frame: number; regs: Uint8Array[] }
-  | { type: "eof"; gen: number; frame: number }
-  | { type: "exported"; id: number; wav: ArrayBuffer | null; message?: string };
+  | { type: "eof"; gen: number; frame: number };
 
 /** worklet -> main / worker */
 export interface LevelMessage {

@@ -29,8 +29,6 @@ export class AudioController {
   private playedFrames = 0;
   private metas: Meta[] = [];
   private eofFrame: number | null = null;
-  private exportWaiters = new Map<number, (wav: ArrayBuffer | null) => void>();
-  private exportId = 0;
 
   onLoaded: (info: TuneDetails) => void = () => {};
   onSeeked: () => void = () => {};
@@ -107,10 +105,6 @@ export class AudioController {
       case "error":
         if (m.gen === this.gen) this.onError(m.message);
         break;
-      case "exported":
-        this.exportWaiters.get(m.id)?.(m.wav);
-        this.exportWaiters.delete(m.id);
-        break;
     }
   }
 
@@ -178,13 +172,5 @@ export class AudioController {
       }
     }
     return found?.regs ?? null;
-  }
-
-  exportWav(data: ArrayBuffer, song: number, seconds: number): Promise<ArrayBuffer | null> {
-    const id = ++this.exportId;
-    return new Promise((resolve) => {
-      this.exportWaiters.set(id, resolve);
-      this.send({ type: "export", id, data: data.slice(0), song, seconds });
-    });
   }
 }

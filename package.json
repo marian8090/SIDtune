@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@preact/signals": "^2.11.3",
     "fflate": "^0.8.3",
     "libsidplayfp-wasm": "^1.1.1",

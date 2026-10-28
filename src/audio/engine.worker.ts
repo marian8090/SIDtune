@@ -276,44 +276,6 @@ async function liveSeek(sec: number, g: number) {
   }
 }
 
-// ---------- export ----------
-
-function encodeWav(pcm: Int16Array, channels: number, rate: number): ArrayBuffer {
-  const buf = new ArrayBuffer(44 + pcm.length * 2);
-  const dv = new DataView(buf);
-  const w = (o: number, s: string) => [...s].forEach((c, i) => dv.setUint8(o + i, c.charCodeAt(0)));
-  w(0, "RIFF");
-  dv.setUint32(4, 36 + pcm.length * 2, true);
-  w(8, "WAVEfmt ");
-  dv.setUint32(16, 16, true);
-  dv.setUint16(20, 1, true);
-  dv.setUint16(22, channels, true);
-  dv.setUint32(24, rate, true);
-  dv.setUint32(28, rate * channels * 2, true);
-  dv.setUint16(32, channels * 2, true);
-  dv.setUint16(34, 16, true);
-  w(36, "data");
-  dv.setUint32(40, pcm.length * 2, true);
-  new Int16Array(buf, 44).set(pcm);
-  return buf;
-}
-
-async function exportWav(id: number, data: ArrayBuffer, song: number, seconds: number) {
-  const e = makeEngine(settings, sampleRate);
-  try {
-    await prepare(e, roms);
-    await e.loadSidBuffer(new Uint8Array(data), song);
-    await applyEmulation(e, settings);
-    const pcm = await e.renderSeconds(seconds);
-    const wav = encodeWav(pcm, e.getChannels(), sampleRate);
-    post({ type: "exported", id, wav }, [wav]);
-  } catch (err) {
-    post({ type: "exported", id, wav: null, message: String(err) });
-  } finally {
-    e.dispose();
-  }
-}
-
 // ---------- messages ----------
 
 async function handle(m: ToWorker) {
@@ -394,9 +356,6 @@ async function handle(m: ToWorker) {
       }
       break;
     }
-    case "export":
-      void exportWav(m.id, m.data, m.song, m.seconds);
-      break;
   }
 }
 
