@@ -54,6 +54,9 @@ after HMR).
   `fastForwardContext`), backward seeks reload and fast-forward from 0. reSIDfp does this at roughly 7x realtime, SIDLite much faster.
 - The wasm files are imported with `?url` in the worker so Vite emits them; the glue code's `module` import produces harmless Vite warnings.
 - Browsers throttle `requestAnimationFrame` in the preview pane to ~1 fps, so the visualiser can't be judged there.
+- System media controls (media keys, lock screen) only reach pages playing an `<audio>`/`<video>` element, not Web Audio, so
+  `src/audio/media-anchor.ts` loops a silent WAV while `playing` is true. Its first `play()` must be in the tap (iOS): `start()` calls
+  `anchorMedia(true)` before its first `await`.
 - `pkill -f vite` or `pgrep -f vite` inside a Bash tool call matches the shell itself; stop servers by port instead.
 
 ## Online HVSC catalogue

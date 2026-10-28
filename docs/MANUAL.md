@@ -147,7 +147,8 @@ Shortcuts work whenever you are not typing in a text field.
 | `Ctrl+,` | Settings |
 | `Esc` | Close the open panel or window |
 
-Media keys, headphone buttons and lock-screen controls work too.
+The play/pause, next and previous keys on your keyboard or headset work too, as do the lock screen and Control Center on phones and
+the media controls in your browser.
 
 ## 9. Your data
 

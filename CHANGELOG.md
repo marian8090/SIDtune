@@ -2,6 +2,14 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.5.1 — 2026-10-28
+
+The system’s media controls now reach SIDtune: the play/pause, next and previous keys on your keyboard or headset, the lock screen and
+Control Center on iPhone and iPad, Android's media notification, and the media hub in Chrome and Edge. They were wired up before, but
+browsers only hand those controls to pages that play through an audio element, and SIDtune plays through Web Audio, so they never
+arrived. A silent audio track now plays alongside the music to claim them. The lock screen also shows how far into the tune you are, and
+if another app takes over the audio, SIDtune pauses instead of playing on underneath it.
+
 ## 0.5.0 — 2026-10-28
 
 Six themes: the original purple, **C64 Blue** in the colours of the C64's start-up screen, **Green** and **Amber Phosphor** like the

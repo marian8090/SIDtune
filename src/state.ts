@@ -1,6 +1,7 @@
 import { computed, effect, signal } from "@preact/signals";
 import toneUrl from "libsidplayfp-wasm/fixtures/test-tone-c4.sid?url";
 import { AudioController, type RomSet } from "./audio/controller";
+import { anchorMedia, setOnSystemPause } from "./audio/media-anchor";
 import { exportAudio, type AudioFormat } from "./audio/export";
 import type { CacheMode, TuneDetails } from "./audio/protocol";
 import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet, putFile } from "./lib/db";
@@ -258,10 +259,12 @@ audio.onLoaded = (info) => {
   if (len === null && sl) len = (info.md5 ? sl.db.lengthSeconds(info.md5, info.currentSong) : null) ?? (t ? lengthForPath(sl, t.path, info.currentSong) : null);
   lengthKnown.value = len !== null;
   duration.value = len ?? settings.value.defaultLengthSec;
+  updatePositionState();
 };
 
 audio.onSeeked = () => {
   loading.value = false;
+  updatePositionState();
 };
 
 audio.onWorking = () => {
@@ -290,6 +293,7 @@ async function start(path: string, songIndex: number | null) {
   if (!meta) return;
   const token = ++playToken;
   loading.value = true;
+  anchorMedia(true); // still inside the tap that started this, which iOS needs for the first play
   try {
     await ensureAudio();
     const data = await tuneData(meta);
@@ -307,6 +311,7 @@ async function start(path: string, songIndex: number | null) {
     prefetchNext();
   } catch (err) {
     loading.value = false;
+    anchorMedia(playing.value);
     message.value = `Could not play: ${err instanceof Error ? err.message : err}`;
   }
 }
@@ -576,10 +581,18 @@ function clearLinkParams() {
 // ---------- media session ----------
 
 function setupMediaSession() {
+  setOnSystemPause(() => playing.value && void togglePlay());
+  effect(() => anchorMedia(playing.value));
+  effect(() => {
+    const on = playing.value;
+    if ("mediaSession" in navigator) navigator.mediaSession.playbackState = current.value ? (on ? "playing" : "paused") : "none";
+    updatePositionState();
+  });
   if (!("mediaSession" in navigator)) return;
   const ms = navigator.mediaSession;
-  ms.setActionHandler("play", () => void togglePlay());
-  ms.setActionHandler("pause", () => void togglePlay());
+  ms.setActionHandler("play", () => !playing.value && void togglePlay());
+  ms.setActionHandler("pause", () => playing.value && void togglePlay());
+  ms.setActionHandler("stop", () => playing.value && void togglePlay());
   ms.setActionHandler("nexttrack", () => next());
   ms.setActionHandler("previoustrack", () => previous());
   ms.setActionHandler("seekto", (d) => d.seekTime != null && seek(d.seekTime));
@@ -589,6 +602,18 @@ function updateMediaSession() {
   const t = current.value;
   if (!t || !("mediaSession" in navigator)) return;
   navigator.mediaSession.metadata = new MediaMetadata({ title: t.title, artist: t.author, album: t.released });
+}
+
+/** Lets the lock screen and system controls show a progress bar. */
+function updatePositionState() {
+  if (!("mediaSession" in navigator) || !navigator.mediaSession.setPositionState) return;
+  const d = duration.peek();
+  try {
+    if (current.peek()) navigator.mediaSession.setPositionState({ duration: d, position: Math.min(position.peek(), d), playbackRate: 1 });
+    else navigator.mediaSession.setPositionState();
+  } catch {
+    // rejects inconsistent values while a load is in flight
+  }
 }
 
 export function formatTime(s: number): string {
