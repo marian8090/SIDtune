@@ -9,6 +9,7 @@ import {
   playlists,
   addToPlaylist,
   selectSong,
+  shareCurrent,
   song,
   stilFor,
   toggleFavorite,
@@ -16,7 +17,7 @@ import {
   voiceMuted,
   lengthKnown,
 } from "../state";
-import { Close, Heart, HeartOutline } from "./Icons";
+import { Close, Heart, HeartOutline, Share } from "./Icons";
 import { Viz } from "./Viz";
 import { coverStyle, describe, initials } from "./util";
 
@@ -92,6 +93,9 @@ export function NowPlaying() {
             <option value="wav">WAV (uncompressed)</option>
             <option value="mp3">MP3 (256 kbps)</option>
           </select>
+          <button class="btn" onClick={() => void shareCurrent()} title="Link to this tune (L)">
+            <Share /> Share
+          </button>
           {playlists.value.length > 0 && (
             <select
               class="input"

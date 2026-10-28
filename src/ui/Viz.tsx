@@ -1,16 +1,27 @@
 import { useEffect, useRef } from "preact/hooks";
+import { theme } from "../lib/prefs";
 import { audio, current, playing } from "../state";
 
-const COLORS: Record<number, string> = {
-  1: "#5fd7ff", // triangle
-  2: "#ffd75f", // sawtooth
-  4: "#ff7ab6", // pulse
-  8: "#b8b8c8", // noise
-};
+interface Palette {
+  bg: string;
+  grid: string;
+  scope: string;
+  waves: Record<number, string>;
+  mix: string;
+}
 
-function waveColor(wave: number): string {
-  if (COLORS[wave]) return COLORS[wave];
-  return wave ? "#b48cff" : "#666";
+/** Canvas colours come from the theme's --viz-* tokens. */
+function readPalette(el: HTMLElement): Palette {
+  const cs = getComputedStyle(el);
+  const v = (name: string) => cs.getPropertyValue(`--viz-${name}`).trim();
+  const text = cs.getPropertyValue("--text").trim();
+  return {
+    bg: v("bg"),
+    grid: text.startsWith("#") && text.length === 7 ? `${text}12` : "rgba(255,255,255,0.05)",
+    scope: v("scope"),
+    waves: { 1: v("tri"), 2: v("saw"), 4: v("pulse"), 8: v("noise") },
+    mix: v("mix"),
+  };
 }
 
 /** Scrolling piano-roll of what the three voices of each SID chip are doing, plus a scope. */
@@ -25,12 +36,14 @@ export function Viz() {
     const r = rc.getContext("2d")!;
     const s = sc.getContext("2d")!;
     const dpr = Math.min(2, window.devicePixelRatio || 1);
+    let pal = readPalette(rc);
+    let palTheme = theme.value;
     const fit = () => {
       for (const c of [rc, sc]) {
         c.width = c.clientWidth * dpr;
         c.height = c.clientHeight * dpr;
       }
-      r.fillStyle = "#0e0a22";
+      r.fillStyle = pal.bg;
       r.fillRect(0, 0, rc.width, rc.height);
     };
     fit();
@@ -42,15 +55,20 @@ export function Viz() {
 
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
-      if (!audio.analyser || !playing.value) return;
+      if (palTheme !== theme.value) {
+        palTheme = theme.value;
+        pal = readPalette(rc);
+        fit();
+      }
+      if (!audio.analyser || !playing.value || !rc.width || !sc.width) return;
       const step = Math.max(1, Math.round(2 * dpr));
       r.drawImage(rc, -step, 0);
-      r.fillStyle = "#0e0a22";
+      r.fillStyle = pal.bg;
       r.fillRect(rc.width - step, 0, step, rc.height);
 
       const regs = audio.currentRegs();
-      const pal = current.value?.clock !== "NTSC";
-      const clk = pal ? 985248 : 1022730;
+      const isPal = current.value?.clock !== "NTSC";
+      const clk = isPal ? 985248 : 1022730;
       if (regs) {
         const lanes = regs.length * 3;
         const laneH = rc.height / lanes;
@@ -61,7 +79,7 @@ export function Viz() {
             const freq = rg[b] | (rg[b + 1] << 8);
             const ctl = rg[b + 4];
             const top = lane * laneH;
-            r.fillStyle = "rgba(255,255,255,0.05)";
+            r.fillStyle = pal.grid;
             r.fillRect(rc.width - step, top + laneH - 1, step, 1);
             if (!freq || ctl & 0x08) continue;
             const hz = (freq * clk) / 16777216;
@@ -69,7 +87,8 @@ export function Viz() {
             const t = Math.min(1, Math.max(0, (midi - 24) / 84));
             const y = top + (1 - t) * (laneH - 4 * dpr);
             r.globalAlpha = ctl & 1 ? 1 : 0.25;
-            r.fillStyle = waveColor(ctl >> 4 & 0x0f);
+            const w = (ctl >> 4) & 0x0f;
+            r.fillStyle = pal.waves[w] ?? (w ? pal.mix : pal.waves[8]);
             r.fillRect(rc.width - step, y, step, 3 * dpr);
             r.globalAlpha = 1;
           }
@@ -85,7 +104,7 @@ export function Viz() {
 
       audio.analyser.getFloatTimeDomainData(wave);
       s.clearRect(0, 0, sc.width, sc.height);
-      s.strokeStyle = "#a0a0ff";
+      s.strokeStyle = pal.scope;
       s.lineWidth = 1.5 * dpr;
       s.beginPath();
       // trigger on a rising zero crossing so the trace holds still

@@ -1,0 +1,53 @@
+# SIDtune version history
+
+What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
+
+## 0.5.0 — 2026-10-28
+
+Six themes: the original purple, **C64 Blue** in the colours of the C64's start-up screen, **Green** and **Amber Phosphor** like the
+monochrome monitors of the day (with a faint glow), and **Monochrome** dark and light. Pick one under *Settings → Appearance* or press `T`
+to cycle through them. The visualiser and the tune covers follow the theme.
+
+SIDtune now has a manual (*Help* in the sidebar, or `?`), this version history (click the version number next to the logo), and an About
+window that greets you on startup until you untick it.
+
+Share a tune: *Share* in Now Playing (or `L`) copies a link that opens straight to that tune and subtune for anyone with the online
+catalogue. On phones it opens the share sheet.
+
+More keyboard shortcuts: `1`–`9` jump to a subtune, `+`/`-` change the volume, `F` favorites the playing tune, `N` opens Now Playing and
+`Ctrl+,` opens Settings. The full list is in the manual.
+
+Tooltips can be switched off. Renaming or deleting a playlist and clearing the library now ask in SIDtune's own style instead of the
+browser's plain pop-ups.
+
+## 0.4.0 — 2026-10-28
+
+The Export WAV button became a *Download…* menu: save the original SID file, or render the tune to FLAC (lossless, about a fifth of the
+size of WAV), WAV or MP3 (256 kbps). FLAC and MP3 files carry title, composer and year tags. Rendering happens in the background, so the
+music keeps playing and a progress message shows how far it has got.
+
+## 0.3.1 — 2026-10-26
+
+iPhone fixes: sound now plays with the silent switch on and starts reliably from the first tap, and a second tune no longer fails with
+"evaluating 'e.engine'". The phone layout gives titles more room: row numbers are gone, the time column is narrower and the timestamps
+larger.
+
+## 0.3.0 — 2026-10-25
+
+Audio quality modes modelled on ultraSID: Real (a small monitor speaker, as most people heard it at the time), Pure, Magic (the new
+default), Epic and Mythic, plus a 3-band equalizer. They live behind the button next to the volume, or `Ctrl+E`. Next and previous use
+chevrons now.
+
+## 0.2.0 — 2026-10-25
+
+Instant seeking: a background thread renders the whole tune into memory, so dragging the seek slider responds immediately instead of
+taking seconds. It can be turned off in Settings to save memory and battery.
+
+Also: the list scrolls to the playing tune, shuffle and repeat show clearly when they are on, the seek slider no longer jumps back while
+you drag it, and starting a tune after a pause no longer stalls.
+
+## 0.1.0 — 2026-10-25
+
+First release. A browser-based SID player with cycle-accurate C64 emulation (reSIDfp or SIDLite), an online HVSC catalogue that streams
+tunes as you play them, import of HVSC folders, `.sid` files and zips, search, playlists, favorites, history, shuffle and repeat, song
+lengths and STIL notes, subtunes, per-voice muting, a live visualiser, WAV export, media-key support and a layout that works on phones.

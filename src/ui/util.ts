@@ -9,8 +9,8 @@ export function hue(s: string): number {
 export function coverStyle(t: TuneMeta | null): Record<string, string> {
   if (!t) return {};
   const h = hue(t.author || t.title);
-  const h2 = (h + 50) % 360;
-  return { background: `linear-gradient(135deg, hsl(${h} 55% 38%), hsl(${h2} 60% 22%))` };
+  // colours come from the theme (src/styles.css); the tune only picks hue and direction
+  return { "--h": String(h), "--h2": String((h + 50) % 360), "--ca": `${90 + (hue(t.title) % 4) * 30}deg` };
 }
 
 export function initials(t: TuneMeta): string {

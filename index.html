@@ -7,6 +7,9 @@
     <meta name="description" content="SIDtune plays Commodore 64 SID music in your browser. Bring your own HVSC collection." />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>SIDtune</title>
+    <script>
+      try { document.documentElement.dataset.theme = localStorage.getItem("sidtune.theme") || "sidtune"; } catch {}
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -8,7 +8,7 @@ import { fetchManifest, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type M
 import { expandZips, runImport, type ImportItem } from "./lib/importer";
 import { lengthForPath, parseSonglengths, type Songlengths } from "./lib/songlengths";
 import { parseStil } from "./lib/stil";
-import { DEFAULT_SETTINGS, SEEK_CACHE_MAX_SEC, type Playlist, type Settings, type TuneMeta } from "./lib/types";
+import { DEFAULT_SETTINGS, SEEK_CACHE_MAX_SEC, touchDevice, type Playlist, type Settings, type TuneMeta } from "./lib/types";
 
 export type View = "all" | "favorites" | "history" | `pl:${string}`;
 export type SortKey = "path" | "title" | "author" | "released";
@@ -55,6 +55,8 @@ export const message = signal<string | null>(null);
 export const importProgress = signal<{ done: number; total: number } | null>(null);
 export const nowPlayingOpen = signal(false);
 export const settingsOpen = signal(false);
+export const docOpen = signal<"manual" | "changelog" | null>(null);
+export const aboutOpen = signal(false);
 export const booted = signal(false);
 export const voiceMuted = signal([false, false, false]);
 
@@ -115,7 +117,7 @@ export async function boot() {
   persist();
   booted.value = true;
   setupMediaSession();
-  void connectHvsc();
+  void openSharedLink(connectHvsc());
 }
 
 // ---------- import ----------
@@ -310,11 +312,15 @@ async function start(path: string, songIndex: number | null) {
 }
 
 /** Starts a tune from the currently visible list so next/previous follow what the user sees. */
-export function playFromList(path: string) {
+export function playFromList(path: string, songIndex: number | null = null) {
   queue = visible.value.map((t) => t.path);
   queueIndex = queue.indexOf(path);
+  if (queueIndex < 0) {
+    queue = [path];
+    queueIndex = 0;
+  }
   played.length = 0;
-  void start(path, null);
+  void start(path, songIndex);
 }
 
 export function playPaths(paths: string[], first = 0) {
@@ -506,6 +512,65 @@ export async function downloadCurrent(format: DownloadFormat) {
   } finally {
     exporting.value = false;
   }
+}
+
+// ---------- shared links ----------
+
+/** A tune opened from a shared link, waiting for a tap (browsers only start audio from a user gesture). */
+export const sharedTune = signal<{ meta: TuneMeta; song: number | null } | null>(null);
+export const openedFromLink = new URLSearchParams(location.search).has("tune");
+
+export function shareUrl(path: string, songIndex: number | null): string {
+  const u = new URL(location.href);
+  u.search = "";
+  u.hash = "";
+  u.searchParams.set("tune", path);
+  if (songIndex !== null) u.searchParams.set("song", String(songIndex + 1));
+  return u.href;
+}
+
+export async function shareCurrent() {
+  const t = current.value;
+  if (!t) return;
+  const url = shareUrl(t.path, song.value !== t.startSong - 1 ? song.value : null);
+  const online = remoteTunes.value.some((r) => r.path === t.path);
+  if (touchDevice && navigator.share) {
+    try {
+      await navigator.share({ title: `${t.title} by ${t.author}`, url });
+    } catch {
+      // cancelled
+    }
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    message.value = online ? "Link copied." : "Link copied. This tune is not in the online catalogue, so the link only works for people who have it too.";
+  } catch {
+    message.value = url;
+  }
+}
+
+async function openSharedLink(catalogue: Promise<void>) {
+  const params = new URLSearchParams(location.search);
+  const path = params.get("tune");
+  if (!path) return;
+  const n = Number(params.get("song"));
+  clearLinkParams();
+  if (!tuneMap.value.has(path)) await catalogue;
+  const meta = tuneMap.value.get(path);
+  if (!meta) {
+    message.value = "The shared tune is not in your library or the online catalogue.";
+    return;
+  }
+  sharedTune.value = { meta, song: Number.isInteger(n) && n >= 1 && n <= meta.songs ? n - 1 : null };
+}
+
+/** Drops ?tune= from the address bar once it is handled, so a reload does not re-open it. */
+function clearLinkParams() {
+  const u = new URL(location.href);
+  u.searchParams.delete("tune");
+  u.searchParams.delete("song");
+  window.history.replaceState(null, "", u);
 }
 
 // ---------- media session ----------

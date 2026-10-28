@@ -1,13 +1,46 @@
 import { useEffect, useState } from "preact/hooks";
 import { itemsFromDrop } from "../lib/importer";
 import { touchDevice } from "../lib/types";
-import { boot, booted, hvscStatus, soundMenuOpen, importItems, message, next, nowPlayingOpen, previous, query, seek, position, togglePlay, tunes, view } from "../state";
+import { cycleTheme, showWelcome, theme, THEMES } from "../lib/prefs";
+import {
+  aboutOpen,
+  boot,
+  booted,
+  current,
+  details,
+  docOpen,
+  hvscStatus,
+  importItems,
+  message,
+  next,
+  nowPlayingOpen,
+  openedFromLink,
+  position,
+  previous,
+  query,
+  seek,
+  selectSong,
+  settings,
+  settingsOpen,
+  setVolume,
+  shareCurrent,
+  sharedTune,
+  soundMenuOpen,
+  toggleFavorite,
+  togglePlay,
+  tunes,
+  view,
+} from "../state";
+import { AboutDialog } from "./About";
+import { AskDialog } from "./Ask";
+import { DocDialog } from "./DocDialog";
 import { Menu, Search } from "./Icons";
 import { Welcome } from "./Import";
 import { NowPlaying } from "./NowPlaying";
 import { PlayerBar } from "./PlayerBar";
 import { SettingsDialog } from "./SettingsDialog";
 import { SoundMenu } from "./SoundMenu";
+import { SharedDialog } from "./Shared";
 import { Sidebar } from "./Sidebar";
 import { TrackList } from "./TrackList";
 
@@ -18,18 +51,24 @@ export function App() {
   const [drag, setDrag] = useState(false);
 
   useEffect(() => {
-    void boot();
+    void boot().then(() => {
+      if (showWelcome.value && !openedFromLink) aboutOpen.value = true;
+    });
     const key = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key.toLowerCase() === "e") {
+      const k = e.key.toLowerCase();
+      if (e.ctrlKey && (k === "e" || k === ",")) {
         e.preventDefault();
-        soundMenuOpen.value = !soundMenuOpen.value;
+        if (k === "e") soundMenuOpen.value = !soundMenuOpen.value;
+        else settingsOpen.value = !settingsOpen.value;
         return;
       }
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
       const el = e.target as HTMLElement;
-      if (el.matches("input:not([type=range]),textarea,select")) {
+      if (el.matches("input:not([type=range]):not([type=checkbox]),textarea,select")) {
         if (e.key === "Escape") (el as HTMLElement).blur();
         return;
       }
+      const t = current.value;
       if (e.key === " ") {
         e.preventDefault();
         void togglePlay();
@@ -38,9 +77,25 @@ export function App() {
       else if (e.key === "/") {
         e.preventDefault();
         document.querySelector<HTMLInputElement>(".search input")?.focus();
-      } else if (e.key === "Escape") {
-        nowPlayingOpen.value = false;
-        soundMenuOpen.value = false;
+      } else if (e.key === "?") docOpen.value = docOpen.value === "manual" ? null : "manual";
+      else if (k === "t") {
+        cycleTheme(e.shiftKey ? -1 : 1);
+        message.value = `Theme: ${THEMES.find((x) => x.id === theme.value)!.label}`;
+      } else if (k === "n" && t) nowPlayingOpen.value = !nowPlayingOpen.value;
+      else if (k === "f" && t) toggleFavorite(t.path);
+      else if (k === "l" && t) void shareCurrent();
+      else if (e.key === "+" || e.key === "=") setVolume(Math.min(1, settings.value.volume + 0.05));
+      else if (e.key === "-") setVolume(Math.max(0, settings.value.volume - 0.05));
+      else if (/^[1-9]$/.test(e.key) && t && Number(e.key) <= (details.value?.songs ?? t.songs)) selectSong(Number(e.key) - 1);
+      else if (e.key === "Escape") {
+        if (docOpen.value) docOpen.value = null;
+        else if (aboutOpen.value) aboutOpen.value = false;
+        else if (sharedTune.value) sharedTune.value = null;
+        else if (settingsOpen.value) settingsOpen.value = false;
+        else {
+          nowPlayingOpen.value = false;
+          soundMenuOpen.value = false;
+        }
       }
     };
     window.addEventListener("keydown", key);
@@ -103,6 +158,10 @@ export function App() {
       <PlayerBar />
       <SoundMenu />
       <SettingsDialog />
+      <AboutDialog />
+      <DocDialog />
+      <SharedDialog />
+      <AskDialog />
       {message.value && <div class="toast" role="status">{message.value}</div>}
       {drag && <div class="dropzone">Drop SID files, a folder or a zip to add them</div>}
     </div>

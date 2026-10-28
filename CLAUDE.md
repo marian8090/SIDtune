@@ -31,7 +31,15 @@ after HMR).
   (own encoder in `flac.ts`) or MP3 (`@breezystack/lamejs`, 256 kbps) with tags, so playback keeps running. Exports are the raw
   emulator output: no voice mutes, no audio quality mode/EQ. "Original SID" just saves the loaded bytes.
 - `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
-- `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic. `src/ui/*` is presentational Preact.
+- `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic, shared links (`?tune=<path>&song=<n>`). `src/ui/*`
+  is presentational Preact. Shortcuts live in `src/ui/App.tsx`.
+- `src/lib/prefs.ts`: theme, tooltips and welcome-on-startup, kept in localStorage (not IndexedDB) so the inline script in `index.html`
+  can set `data-theme` before the first paint.
+- Themes are `[data-theme]` blocks in `src/styles.css` that override the `:root` tokens. Never hardcode a colour in CSS or components:
+  add a token (the visualiser reads `--viz-*` from CSS; keep those as plain hex, the canvas can't parse `color-mix()`).
+- `src/ui/Ask.tsx` replaces `confirm()`/`prompt()` (`confirmDialog`, `promptDialog`); don't use the browser's.
+- `docs/MANUAL.md` (Help) and `CHANGELOG.md` (Version history) are bundled with `?raw` and rendered by `src/lib/markdown.ts`, which only
+  knows headings, paragraphs, lists, pipe tables, `code`, **bold**, *italic* and links.
 - `src/lib/`: PSID header parser, IndexedDB wrapper (`meta`, `files`, `kv` stores), importers (folder, drop, zip), Songlengths/STIL parsers,
   and the online HVSC client (`hvsc.ts`).
 - Tunes are keyed by HVSC-style path (`/MUSICIANS/H/Hubbard_Rob/Commando.sid`). Favorites, playlists and history store paths. Imported tunes
@@ -55,6 +63,11 @@ disclaimer limits use to private enjoyment: do not publish pack files publicly o
 holders. See `docs/HVSC-HOSTING.md`. `hvsc-build/` is git-ignored (hundreds of MB).
 
 ## Conventions
+
+- **Every commit bumps the version and the changelog.** Bump `version` in `package.json` (semver: minor = new feature, patch = fix or
+  polish) and add an entry at the top of `CHANGELOG.md` (`## x.y.z — YYYY-MM-DD`). Write entries for listeners: what changed for them and
+  why, in prose, not commit messages. The version shows next to the logo (`__APP_VERSION__`, defined in `vite.config.ts`).
+- Keep `docs/MANUAL.md` in step with user-visible changes (new settings, shortcuts, formats).
 
 - Match the existing style: small modules, no comments that restate code, TypeScript strict (including `noUnusedLocals`).
 - Commit or push only when asked. Remote is `origin` = github.com/marian8090/SIDtune (main).

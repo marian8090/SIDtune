@@ -1,8 +1,10 @@
 import { useRef } from "preact/hooks";
+import { showWelcome, theme, THEMES, tooltips, type ThemeId } from "../lib/prefs";
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
-import { connectHvsc, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
+import { aboutOpen, connectHvsc, docOpen, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
+import { confirmDialog } from "./Ask";
 import { Close } from "./Icons";
 
 async function readBytes(f: File | undefined) {
@@ -33,6 +35,35 @@ export function SettingsDialog() {
             <Close />
           </button>
         </header>
+
+        <h4>Appearance</h4>
+        <label class="field">
+          <span>
+            Theme
+            <small>Press T to cycle through them.</small>
+          </span>
+          <select class="input" value={theme.value} onChange={(e) => (theme.value = (e.currentTarget as HTMLSelectElement).value as ThemeId)}>
+            {THEMES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="field">
+          <span>
+            Tooltips
+            <small>Short explanations when you hover over a button.</small>
+          </span>
+          <input type="checkbox" checked={tooltips.value} onChange={(e) => (tooltips.value = (e.currentTarget as HTMLInputElement).checked)} />
+        </label>
+        <label class="field">
+          <span>
+            Welcome on startup
+            <small>Show the About window each time SIDtune opens.</small>
+          </span>
+          <input type="checkbox" checked={showWelcome.value} onChange={(e) => (showWelcome.value = (e.currentTarget as HTMLInputElement).checked)} />
+        </label>
 
         <h4>Sound</h4>
         <label class="field">
@@ -179,13 +210,19 @@ export function SettingsDialog() {
             {localTunes.value.length.toLocaleString()} imported tunes stored in this browser
             <small>Removes imported tunes, song lengths and STIL. Favorites and playlists are kept.</small>
           </span>
-          <button class="btn danger" onClick={() => confirm("Remove all imported tunes from this browser?") && void wipeLibrary()}>
+          <button class="btn danger" onClick={async () => (await confirmDialog("Clear the library?", { text: "Removes all imported tunes from this browser. Favorites and playlists are kept.", ok: "Clear library", danger: true })) && void wipeLibrary()}>
             Clear library
           </button>
         </div>
         <p class="hint about">
-          SIDtune is free software (GPL-3.0), inspired by <a href="https://ultrasid.com/" target="_blank" rel="noreferrer">ultraSID</a>. Emulation by
-          libsidplayfp / reSIDfp.
+          SIDtune {__APP_VERSION__} ·{" "}
+          <button class="link" onClick={() => ((settingsOpen.value = false), (aboutOpen.value = true))}>
+            About
+          </button>{" "}
+          ·{" "}
+          <button class="link" onClick={() => ((settingsOpen.value = false), (docOpen.value = "manual"))}>
+            Help
+          </button>
         </p>
       </div>
     </div>

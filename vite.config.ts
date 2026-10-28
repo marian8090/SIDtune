@@ -1,4 +1,4 @@
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { defineConfig, type Plugin } from "vite";
 
@@ -34,8 +34,11 @@ function hvscDev(): Plugin {
   };
 }
 
+const pkg = JSON.parse(readFileSync("package.json", "utf8")) as { version: string };
+
 export default defineConfig({
   base: "./",
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [hvscDev()],
   worker: {
     format: "es",

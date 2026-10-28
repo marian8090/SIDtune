@@ -18,11 +18,15 @@ favorites. Nothing is uploaded, and no music is bundled.
 - Now-playing view with a live pitch roll for every voice of every SID chip, plus a scope
 - Audio quality modes modelled on ultraSID: Real (cheap TV speaker), Pure, Magic (default), Epic and Mythic, plus a 3-band equalizer (button next to the volume, `Ctrl+E`)
 - SID chip (6581/8580) and PAL/NTSC overrides, digi boost
-- Export the current tune to WAV
+- Download the original SID file, or render the tune to FLAC, WAV or MP3 (tagged with title, composer and year)
+- Six themes: SIDtune Purple, C64 Blue, Green and Amber Phosphor, Monochrome dark and light
+- Shareable links that open a tune (and subtune) directly
+- Built-in manual (`?`) and version history ([CHANGELOG.md](CHANGELOG.md))
 - Media-key and lock-screen controls (Media Session API)
 - Responsive layout for desktop and mobile
 
-Keyboard: `Space` play/pause, `←`/`→` seek ±10 s, `Shift+←`/`Shift+→` previous/next, `/` search, `Esc` close panel.
+Keyboard: `Space` play/pause, `←`/`→` seek ±10 s, `Shift+←`/`Shift+→` previous/next, `1`–`9` subtune, `/` search, `T` theme, `?` help.
+The full list is in the [manual](docs/MANUAL.md).
 
 ## Getting started
 
@@ -57,8 +61,8 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 - Seeking is instant once the background render has caught up (about 7x realtime on reSIDfp, so a few seconds after a tune starts, longer
   for long tunes). Seeking ahead of that, muting a voice after a seek, or turning Instant seeking off falls back to running the emulator up
   to the target, which shows a spinner. The cache costs about 11 MB per minute of music and a second CPU thread.
-- The audio quality modes use ultraSID's parameter values but a Web Audio reverb (synthetic impulse response) instead of its MVerb, so the room sounds similar rather than identical. There is no loudness normalisation yet, and WAV export is the unprocessed chip output.
-- Export is WAV only (no FLAC/OGG yet), and the engine is stock libsidplayfp rather than ultraSID's libSidplayEZ fork.
+- The audio quality modes use ultraSID's parameter values but a Web Audio reverb (synthetic impulse response) instead of its MVerb, so the room sounds similar rather than identical. There is no loudness normalisation yet, and downloads are the unprocessed chip output.
+- The engine is stock libsidplayfp rather than ultraSID's libSidplayEZ fork.
 - No C64 title screens, screenshots or portraits, and no CRT view.
 - The iOS app is not started. The audio engine and UI logic are reusable; a native shell (SwiftUI plus the same emulation core) or a
   Capacitor wrapper are the likely routes.
@@ -68,4 +72,4 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 GPL-3.0-or-later, see [LICENSE](LICENSE). Emulation is [libsidplayfp](https://github.com/libsidplayfp/libsidplayfp) / reSIDfp
 (GPL-2.0-or-later) via the [`libsidplayfp-wasm`](https://github.com/chrisgleissner/libsidplayfp-wasm) package. Its third-party notices and
 corresponding source ship in `node_modules/libsidplayfp-wasm` and must be kept with any distributed build. The SID/C64 music belongs to its
-composers, and HVSC has its own terms.
+composers, and HVSC has its own terms. MP3 encoding uses [lamejs](https://github.com/shijinyu/lamejs) (LGPL-3.0).

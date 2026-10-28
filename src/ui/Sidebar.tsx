@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
-import { createPlaylist, deletePlaylist, favorites, history, importProgress, playlists, renamePlaylist, settingsOpen, tunes, view, type View } from "../state";
-import { Clock, Folder, Gear, Heart, Library, Plus, Trash } from "./Icons";
+import { aboutOpen, createPlaylist, deletePlaylist, docOpen, favorites, history, importProgress, playlists, renamePlaylist, settingsOpen, tunes, view, type View } from "../state";
+import { Clock, Folder, Gear, Heart, Help, Info, Library, Logo, Plus, Trash } from "./Icons";
+import { confirmDialog, promptDialog } from "./Ask";
 import { useImportPickers } from "./Import";
 
 export function Sidebar({ open, close }: { open: boolean; close: () => void }) {
@@ -24,17 +25,11 @@ export function Sidebar({ open, close }: { open: boolean; close: () => void }) {
     <aside class={`sidebar ${open ? "open" : ""}`}>
       {inputs}
       <div class="brand">
-        <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true">
-          <rect width="64" height="64" rx="14" fill="#352879" />
-          <g fill="#a0a0ff">
-            <rect x="10" y="34" width="6" height="18" rx="2" />
-            <rect x="20" y="22" width="6" height="30" rx="2" />
-            <rect x="30" y="12" width="6" height="40" rx="2" />
-            <rect x="40" y="26" width="6" height="26" rx="2" />
-            <rect x="50" y="38" width="6" height="14" rx="2" />
-          </g>
-        </svg>
+        <Logo />
         <span>SIDtune</span>
+        <button class="version" title="Version history" onClick={() => (docOpen.value = "changelog")}>
+          v{__APP_VERSION__}
+        </button>
       </div>
 
       <nav>
@@ -68,15 +63,15 @@ export function Sidebar({ open, close }: { open: boolean; close: () => void }) {
         )}
         {playlists.value.map((p) => (
           <div key={p.id} class={`nav-item pl ${view.value === `pl:${p.id}` ? "active" : ""}`}>
-            <button class="pl-main" onClick={() => go(`pl:${p.id}`)} onDblClick={() => {
-              const name = prompt("Rename playlist", p.name);
+            <button class="pl-main" onClick={() => go(`pl:${p.id}`)} onDblClick={async () => {
+              const name = await promptDialog("Rename playlist", { value: p.name, ok: "Rename" });
               if (name) renamePlaylist(p.id, name);
             }}>
               <List />
               <span>{p.name}</span>
               <em>{p.paths.length}</em>
             </button>
-            <button class="icon-btn danger" title="Delete playlist" onClick={() => confirm(`Delete “${p.name}”?`) && deletePlaylist(p.id)}>
+            <button class="icon-btn danger" title="Delete playlist" onClick={async () => (await confirmDialog(`Delete “${p.name}”?`, { text: "The tunes stay in your library.", ok: "Delete", danger: true })) && deletePlaylist(p.id)}>
               <Trash />
             </button>
           </div>
@@ -102,6 +97,14 @@ export function Sidebar({ open, close }: { open: boolean; close: () => void }) {
         <button class="nav-item" onClick={() => (settingsOpen.value = true)}>
           <Gear /> <span>Settings</span>
         </button>
+        <div class="foot-row">
+          <button class="nav-item" onClick={() => (docOpen.value = "manual")}>
+            <Help /> <span>Help</span>
+          </button>
+          <button class="nav-item" onClick={() => (aboutOpen.value = true)}>
+            <Info /> <span>About</span>
+          </button>
+        </div>
       </div>
     </aside>
   );

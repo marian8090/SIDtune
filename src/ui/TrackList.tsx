@@ -19,6 +19,7 @@ import {
   type SortKey,
 } from "../state";
 import { lengthForPath } from "../lib/songlengths";
+import { promptDialog } from "./Ask";
 import { Heart, HeartOutline, Plus, Trash } from "./Icons";
 
 const ROW = 52;
@@ -164,10 +165,10 @@ function PlaylistMenu() {
           {p.name} {p.paths.includes(m.path) && <small>✓</small>}
         </button>
       ))}
-      <button class="accent" onClick={() => {
-        const name = prompt("New playlist name");
-        if (name) createPlaylist(name, m.path);
+      <button class="accent" onClick={async () => {
         menu.value = null;
+        const name = await promptDialog("New playlist", { ok: "Create" });
+        if (name) createPlaylist(name, m.path);
       }}>
         + New playlist…
       </button>

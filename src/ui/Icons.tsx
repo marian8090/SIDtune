@@ -25,3 +25,21 @@ export const List = p("M3 13h2v-2H3zm0 4h2v-2H3zm0-8h2V7H3zm4 4h14v-2H7zm0 4h14v
 export const Clock = p("M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z");
 export const Library = p("M4 6H2v14a2 2 0 002 2h14v-2H4zm16-4H8a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2zm-1 9H9V9h10zm-4 4H9v-2h6zm4-8H9V5h10z");
 export const Trash = p("M6 19a2 2 0 002 2h8a2 2 0 002-2V7H6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14z");
+
+export function Logo({ size = 28 }: { size?: number }) {
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true">
+      <rect width="64" height="64" rx="14" fill="var(--logo-bg)" />
+      <g fill="var(--logo-fg)">
+        <rect x="10" y="34" width="6" height="18" rx="2" />
+        <rect x="20" y="22" width="6" height="30" rx="2" />
+        <rect x="30" y="12" width="6" height="40" rx="2" />
+        <rect x="40" y="26" width="6" height="26" rx="2" />
+        <rect x="50" y="38" width="6" height="14" rx="2" />
+      </g>
+    </svg>
+  );
+}
+export const Help = p("M11 18h2v-2h-2zm1-16a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm0-14a4 4 0 00-4 4h2a2 2 0 114 0c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5a4 4 0 00-4-4z");
+export const Info = p("M11 7h2v2h-2zm0 4h2v6h-2zm1-9a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16z");
+export const Share = p("M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11A2.99 2.99 0 0021 5a3 3 0 10-5.91.7L8.04 9.81A3 3 0 003 12a3 3 0 005.04 2.19l7.12 4.16c-.05.21-.08.43-.08.65A2.92 2.92 0 1018 16.08z");
