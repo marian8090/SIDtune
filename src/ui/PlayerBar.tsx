@@ -46,7 +46,7 @@ export function PlayerBar() {
 
       <div class="transport">
         <div class="buttons">
-          <button class={`icon-btn ${s.shuffle ? "on" : ""}`} aria-pressed={s.shuffle} title={`Shuffle: ${s.shuffle ? "on" : "off"}`} onClick={() => updateSettings({ shuffle: !s.shuffle })}>
+          <button class={`icon-btn ${s.shuffle ? "on" : ""}`} aria-pressed={s.shuffle} title={`Shuffle: ${s.shuffle ? "on" : "off"} (S)`} onClick={() => updateSettings({ shuffle: !s.shuffle })}>
             <Shuffle />
           </button>
           <button class="icon-btn skip" title="Previous (<)" onClick={previous}>
@@ -61,7 +61,7 @@ export function PlayerBar() {
           <button
             class={`icon-btn ${s.repeat !== "off" ? "on" : ""}`}
             aria-pressed={s.repeat !== "off"}
-            title={`Repeat: ${s.repeat}`}
+            title={`Repeat: ${s.repeat} (R)`}
             onClick={() => updateSettings({ repeat: s.repeat === "off" ? "all" : s.repeat === "all" ? "one" : "off" })}
           >
             <Repeat />

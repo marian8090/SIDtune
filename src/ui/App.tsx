@@ -29,6 +29,7 @@ import {
   toggleFavorite,
   togglePlay,
   tunes,
+  updateSettings,
   view,
 } from "../state";
 import { AboutDialog } from "./About";
@@ -62,7 +63,10 @@ export function App() {
         else settingsOpen.value = !settingsOpen.value;
         return;
       }
-      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Many layouts type < > ? + - with AltGr (reported as Ctrl+Alt on Windows) or Option, so symbols may carry Alt.
+      // Ctrl or Cmd on their own are browser shortcuts, and Alt with anything else (Alt+← is Back) stays the browser's.
+      const symbol = e.key.length === 1 && e.key !== " " && !/[\p{L}\p{N}]/u.test(e.key);
+      if (e.metaKey || (e.ctrlKey && !e.altKey) || (e.altKey && !symbol)) return;
       const el = e.target as HTMLElement;
       if (el.matches("input:not([type=range]):not([type=checkbox]),textarea,select")) {
         if (e.key === "Escape") (el as HTMLElement).blur();
@@ -85,6 +89,14 @@ export function App() {
         message.value = `Theme: ${THEMES.find((x) => x.id === theme.value)!.label}`;
       } else if (k === "n" && t) nowPlayingOpen.value = !nowPlayingOpen.value;
       else if (k === "f" && t) toggleFavorite(t.path);
+      else if (k === "s") {
+        updateSettings({ shuffle: !settings.value.shuffle });
+        message.value = `Shuffle ${settings.value.shuffle ? "on" : "off"}`;
+      } else if (k === "r") {
+        const r = settings.value.repeat;
+        updateSettings({ repeat: r === "off" ? "all" : r === "all" ? "one" : "off" });
+        message.value = { off: "Repeat off", all: "Repeat all", one: "Repeat one" }[settings.value.repeat];
+      }
       else if (k === "l" && t) void shareCurrent();
       else if (e.key === "+" || e.key === "=") setVolume(Math.min(1, settings.value.volume + 0.05));
       else if (e.key === "-") setVolume(Math.max(0, settings.value.volume - 0.05));

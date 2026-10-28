@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.5.3 — 2026-10-28
+
+The `<` and `>` keys now skip tunes on every keyboard layout. On many European layouts these characters are typed with AltGr (or Option
+on a Mac or iPad), and SIDtune ignored any key pressed together with those, so the shortcuts silently did nothing there. New: `S` turns
+shuffle on and off and `R` cycles repeat through off, all and one.
+
 ## 0.5.2 — 2026-10-28
 
 On iPad the seek bar sat right at the bottom edge of the screen, where swiping for the home screen and app switcher starts, so reaching for
