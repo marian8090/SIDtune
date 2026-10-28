@@ -13,6 +13,14 @@ export const THEMES = [
 
 export type ThemeId = (typeof THEMES)[number]["id"];
 
+/** The stacks themselves are the --font tokens in src/styles.css. */
+export const FONTS = [
+  { id: "system", label: "System (default)" },
+  { id: "jetbrains", label: "JetBrains Mono" },
+] as const;
+
+export type FontId = (typeof FONTS)[number]["id"];
+
 function read(key: string): string | null {
   try {
     return localStorage.getItem(`sidtune.${key}`);
@@ -34,10 +42,13 @@ function persist<T>(key: string, s: { value: T }, encode: (v: T) => string) {
 
 const storedTheme = read("theme");
 export const theme = signal<ThemeId>(THEMES.some((t) => t.id === storedTheme) ? (storedTheme as ThemeId) : "sidtune");
+const storedFont = read("font");
+export const font = signal<FontId>(FONTS.some((f) => f.id === storedFont) ? (storedFont as FontId) : "system");
 export const tooltips = signal(read("tooltips") !== "off");
 export const showWelcome = signal(read("welcome") !== "off");
 
 persist("theme", theme, (v) => v);
+persist("font", font, (v) => v);
 persist("tooltips", tooltips, (v) => (v ? "on" : "off"));
 persist("welcome", showWelcome, (v) => (v ? "on" : "off"));
 
@@ -45,6 +56,10 @@ effect(() => {
   const t = THEMES.find((x) => x.id === theme.value)!;
   document.documentElement.dataset.theme = t.id;
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", t.color);
+});
+
+effect(() => {
+  document.documentElement.dataset.font = font.value;
 });
 
 export function cycleTheme(step: 1 | -1) {

@@ -38,7 +38,14 @@
   --viz-mix: #b48cff;
   --viz-scope: #a0a0ff;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font);
+}
+
+/* ---------- fonts (html[data-font], set by src/lib/prefs.ts) ---------- */
+[data-font="jetbrains"] {
+  --font: "JetBrains Mono Variable", ui-monospace, monospace;
+  --mono: var(--font);
 }
 
 /* ---------- themes (html[data-theme], set by src/lib/prefs.ts; "sidtune" is the :root default) ---------- */

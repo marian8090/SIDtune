@@ -8,7 +8,10 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <title>SIDtune</title>
     <script>
-      try { document.documentElement.dataset.theme = localStorage.getItem("sidtune.theme") || "sidtune"; } catch {}
+      try {
+        document.documentElement.dataset.theme = localStorage.getItem("sidtune.theme") || "sidtune";
+        document.documentElement.dataset.font = localStorage.getItem("sidtune.font") || "system";
+      } catch {}
     </script>
   </head>
   <body>

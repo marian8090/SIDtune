@@ -33,8 +33,9 @@ after HMR).
 - `src/audio/controller.ts`: main-thread owner of the AudioContext, worker and worklet. Position = `baseSec + playedFrames / sampleRate`.
 - `src/state.ts`: all app state as Preact signals plus playback/queue/playlist logic, shared links (`?tune=<path>&song=<n>`). `src/ui/*`
   is presentational Preact. Shortcuts live in `src/ui/App.tsx`.
-- `src/lib/prefs.ts`: theme, tooltips and welcome-on-startup, kept in localStorage (not IndexedDB) so the inline script in `index.html`
-  can set `data-theme` before the first paint.
+- `src/lib/prefs.ts`: theme, font, tooltips and welcome-on-startup, kept in localStorage (not IndexedDB) so the inline script in `index.html`
+  can set `data-theme` and `data-font` before the first paint. Fonts are `[data-font]` blocks setting `--font` (and `--mono`);
+  bundle font files from npm (`@fontsource*`), never load them from a third-party CDN.
 - Themes are `[data-theme]` blocks in `src/styles.css` that override the `:root` tokens. Never hardcode a colour in CSS or components:
   add a token (the visualiser reads `--viz-*` from CSS; keep those as plain hex, the canvas can't parse `color-mix()`).
 - `src/ui/Ask.tsx` replaces `confirm()`/`prompt()` (`confirmDialog`, `promptDialog`); don't use the browser's.

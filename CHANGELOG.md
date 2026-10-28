@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.6.0 — 2026-10-28
+
+Choose the font: *Settings → Appearance → Font* switches between your system's own font and JetBrains Mono, a monospaced font that suits
+the phosphor and C64 themes. It is built in, so it works offline, and like the theme it is remembered and applied from the first moment
+the page appears.
+
 ## 0.5.3 — 2026-10-28
 
 The `<` and `>` keys now skip tunes on every keyboard layout. On many European layouts these characters are typed with AltGr (or Option

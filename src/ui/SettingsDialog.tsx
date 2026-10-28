@@ -1,5 +1,5 @@
 import { useRef } from "preact/hooks";
-import { showWelcome, theme, THEMES, tooltips, type ThemeId } from "../lib/prefs";
+import { font, FONTS, showWelcome, theme, THEMES, tooltips, type FontId, type ThemeId } from "../lib/prefs";
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
@@ -46,6 +46,19 @@ export function SettingsDialog() {
             {THEMES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label class="field">
+          <span>
+            Font
+            <small>The lettering used throughout SIDtune.</small>
+          </span>
+          <select class="input" value={font.value} onChange={(e) => (font.value = (e.currentTarget as HTMLSelectElement).value as FontId)}>
+            {FONTS.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.label}
               </option>
             ))}
           </select>

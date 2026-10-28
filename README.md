@@ -19,7 +19,7 @@ favorites. Nothing is uploaded, and no music is bundled.
 - Audio quality modes modelled on ultraSID: Real (cheap TV speaker), Pure, Magic (default), Epic and Mythic, plus a 3-band equalizer (button next to the volume, `Ctrl+E`)
 - SID chip (6581/8580) and PAL/NTSC overrides, digi boost
 - Download the original SID file, or render the tune to FLAC, WAV or MP3 (tagged with title, composer and year)
-- Six themes: SIDtune Purple, C64 Blue, Green and Amber Phosphor, Monochrome dark and light
+- Six themes: SIDtune Purple, C64 Blue, Green and Amber Phosphor, Monochrome dark and light, and a choice of font
 - Shareable links that open a tune (and subtune) directly
 - Built-in manual (`?`) and version history ([CHANGELOG.md](CHANGELOG.md))
 - Media-key and lock-screen controls (Media Session API)
@@ -72,4 +72,4 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 GPL-3.0-or-later, see [LICENSE](LICENSE). Emulation is [libsidplayfp](https://github.com/libsidplayfp/libsidplayfp) / reSIDfp
 (GPL-2.0-or-later) via the [`libsidplayfp-wasm`](https://github.com/chrisgleissner/libsidplayfp-wasm) package. Its third-party notices and
 corresponding source ship in `node_modules/libsidplayfp-wasm` and must be kept with any distributed build. The SID/C64 music belongs to its
-composers, and HVSC has its own terms. MP3 encoding uses [lamejs](https://github.com/shijinyu/lamejs) (LGPL-3.0).
+composers, and HVSC has its own terms. MP3 encoding uses [lamejs](https://github.com/shijinyu/lamejs) (LGPL-3.0); JetBrains Mono is under the SIL Open Font License 1.1.
