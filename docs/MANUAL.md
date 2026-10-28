@@ -124,8 +124,9 @@ Choose a theme under *Settings → Appearance*, or press `T` to cycle through th
 - **Green Phosphor** and **Amber Phosphor**, like the monochrome monitors of the time;
 - **Monochrome Dark** and **Monochrome Light**.
 
-The same section picks the **font**: your system's own (the default) or JetBrains Mono, a clear monospaced font in the spirit of the
-old computer screens. It also switches tooltips on or off, and decides whether the About window greets you when SIDtune starts.
+The same section picks the **font**: your system's own (the default), the Apple II's 40-column lettering (Print Char 21), the
+C64's (Pet Me 64), or JetBrains Mono, a clear modern monospaced font. The two retro fonts are by Kreative Korp. They look best with the
+matching theme: try C64 Blue with the C64 font, or Green Phosphor with the Apple II one. It also switches tooltips on or off, and decides whether the About window greets you when SIDtune starts.
 
 ## 8. Keyboard shortcuts
 

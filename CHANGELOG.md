@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.7.0 — 2026-10-28
+
+Two retro fonts join the font choice in *Settings → Appearance*: the Apple II's 40-column lettering (Print Char 21) and the C64's own
+(Pet Me 64), both by Kreative Korp. Pair the C64 font with the C64 Blue theme, or the Apple II font with Green Phosphor, for the full
+effect. They are built in and only download when you pick them.
+
 ## 0.6.0 — 2026-10-28
 
 Choose the font: *Settings → Appearance → Font* switches between your system's own font and JetBrains Mono, a monospaced font that suits

@@ -43,10 +43,35 @@
 }
 
 /* ---------- fonts (html[data-font], set by src/lib/prefs.ts) ---------- */
+/* Kreative Korp's pixel fonts ship unmodified, as their licence requires (src/assets/fonts/Kreative-FreeLicense.txt). Their characters
+   are a full em wide, so size-adjust brings them closer to the width of ordinary text. They have no bold, and faking one smears the
+   pixels. */
+@font-face {
+  font-family: "Pet Me 64";
+  src: url("./assets/fonts/PetMe64.ttf") format("truetype");
+  font-display: swap;
+  size-adjust: 80%;
+}
+@font-face {
+  font-family: "Print Char 21";
+  src: url("./assets/fonts/PrintChar21.ttf") format("truetype");
+  font-display: swap;
+  size-adjust: 90%;
+}
 [data-font="jetbrains"] {
   --font: "JetBrains Mono Variable", ui-monospace, monospace;
   --mono: var(--font);
 }
+[data-font="c64"] {
+  --font: "Pet Me 64", ui-monospace, monospace;
+  --mono: var(--font);
+}
+[data-font="apple2"] {
+  --font: "Print Char 21", ui-monospace, monospace;
+  --mono: var(--font);
+}
+/* their metrics declare a line exactly one em tall, so stacked lines would touch */
+:is([data-font="c64"], [data-font="apple2"]) body { font-synthesis: none; line-height: 1.4; }
 
 /* ---------- themes (html[data-theme], set by src/lib/prefs.ts; "sidtune" is the :root default) ---------- */
 /* The C64's own screen: light blue text on dark blue, framed by the light blue border colour. */

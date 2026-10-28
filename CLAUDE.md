@@ -35,7 +35,10 @@ after HMR).
   is presentational Preact. Shortcuts live in `src/ui/App.tsx`.
 - `src/lib/prefs.ts`: theme, font, tooltips and welcome-on-startup, kept in localStorage (not IndexedDB) so the inline script in `index.html`
   can set `data-theme` and `data-font` before the first paint. Fonts are `[data-font]` blocks setting `--font` (and `--mono`);
-  bundle font files from npm (`@fontsource*`), never load them from a third-party CDN.
+  bundle font files with the app (npm `@fontsource*`, or `src/assets/fonts/`), never load them from a third-party CDN.
+- The Kreative Korp fonts in `src/assets/fonts/` (Pet Me 64, Print Char 21) must stay byte-identical to the originals: their licence
+  forbids modifying them, so no WOFF2 conversion or subsetting. Keep `public/fonts/Kreative-FreeLicense.txt` (ships with the site) and the
+  credit in the About window.
 - Themes are `[data-theme]` blocks in `src/styles.css` that override the `:root` tokens. Never hardcode a colour in CSS or components:
   add a token (the visualiser reads `--viz-*` from CSS; keep those as plain hex, the canvas can't parse `color-mix()`).
 - `src/ui/Ask.tsx` replaces `confirm()`/`prompt()` (`confirmDialog`, `promptDialog`); don't use the browser's.

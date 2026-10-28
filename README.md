@@ -72,4 +72,6 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 GPL-3.0-or-later, see [LICENSE](LICENSE). Emulation is [libsidplayfp](https://github.com/libsidplayfp/libsidplayfp) / reSIDfp
 (GPL-2.0-or-later) via the [`libsidplayfp-wasm`](https://github.com/chrisgleissner/libsidplayfp-wasm) package. Its third-party notices and
 corresponding source ship in `node_modules/libsidplayfp-wasm` and must be kept with any distributed build. The SID/C64 music belongs to its
-composers, and HVSC has its own terms. MP3 encoding uses [lamejs](https://github.com/shijinyu/lamejs) (LGPL-3.0); JetBrains Mono is under the SIL Open Font License 1.1.
+composers, and HVSC has its own terms. MP3 encoding uses [lamejs](https://github.com/shijinyu/lamejs) (LGPL-3.0); JetBrains Mono is under the SIL Open Font License 1.1. The Pet Me 64 and Print Char 21 fonts are by
+[Kreative Korp](https://www.kreativekorp.com/software/fonts/) under the Kreative Software Relay Fonts Free Use License
+([`public/fonts/Kreative-FreeLicense.txt`](public/fonts/Kreative-FreeLicense.txt)): free to embed and redistribute, not to sell or modify.

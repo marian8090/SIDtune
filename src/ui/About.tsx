@@ -37,7 +37,9 @@ export function AboutDialog() {
           Music from the <a href="https://www.hvsc.c64.org/" target="_blank" rel="noreferrer">High Voltage SID Collection</a>; the tunes belong to
           their composers and are for private enjoyment. Emulation by libsidplayfp (reSIDfp and SIDLite). Inspired by{" "}
           <a href="https://ultrasid.com/" target="_blank" rel="noreferrer">ultraSID</a>, but an independent project. SIDtune is free software under
-          the GPL-3.0.
+          the GPL-3.0. The Apple II and C64 fonts, Print Char 21 and Pet Me 64, are by{" "}
+          <a href="https://www.kreativekorp.com/software/fonts/" target="_blank" rel="noreferrer">Kreative Korp</a>, used under their{" "}
+          <a href="./fonts/Kreative-FreeLicense.txt" target="_blank" rel="noreferrer">free use licence</a>.
         </p>
         <div class="about-foot">
           <label class="check">

@@ -16,6 +16,8 @@ export type ThemeId = (typeof THEMES)[number]["id"];
 /** The stacks themselves are the --font tokens in src/styles.css. */
 export const FONTS = [
   { id: "system", label: "System (default)" },
+  { id: "apple2", label: "Apple II (Print Char 21)" },
+  { id: "c64", label: "C64 (Pet Me 64)" },
   { id: "jetbrains", label: "JetBrains Mono" },
 ] as const;
 
