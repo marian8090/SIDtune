@@ -2,6 +2,13 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.5.2 — 2026-10-28
+
+On iPad the seek bar sat right at the bottom edge of the screen, where swiping for the home screen and app switcher starts, so reaching for
+it could set off the system instead. It now sits clear of that edge on touch screens, and the player bar leaves room for the home
+indicator on every device. The previous and next buttons are bigger and easier to hit, and the `<` and `>` keys skip to the previous and
+next tune.
+
 ## 0.5.1 — 2026-10-28
 
 The system’s media controls now reach SIDtune: the play/pause, next and previous keys on your keyboard or headset, the lock screen and

@@ -134,6 +134,7 @@ Shortcuts work whenever you are not typing in a text field.
 |---|---|
 | `Space` | Play or pause |
 | `←` / `→` | Seek back or forward 10 seconds |
+| `<` / `>` | Previous or next tune |
 | `Shift+←` / `Shift+→` | Previous or next tune |
 | `1` – `9` | Play subtune 1 to 9 |
 | `+` / `-` | Volume up or down |

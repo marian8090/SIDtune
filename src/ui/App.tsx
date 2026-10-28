@@ -74,6 +74,8 @@ export function App() {
         void togglePlay();
       } else if (e.key === "ArrowRight") e.shiftKey ? next() : seek(position.value + 10);
       else if (e.key === "ArrowLeft") e.shiftKey ? previous() : seek(position.value - 10);
+      else if (e.key === ">") next();
+      else if (e.key === "<") previous();
       else if (e.key === "/") {
         e.preventDefault();
         document.querySelector<HTMLInputElement>(".search input")?.focus();

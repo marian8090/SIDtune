@@ -13,7 +13,7 @@
   --danger: #ff7a8a;
   --fav: #ff6fa5;
   --radius: 10px;
-  --bar-h: 88px;
+  --bar-h: calc(88px + env(safe-area-inset-bottom));
   --sidebar-w: 248px;
   --np-w: 380px;
   --hover: color-mix(in srgb, var(--text) 6%, transparent);
@@ -284,7 +284,7 @@ button.th:hover, .th.on { color: var(--text); }
 .progress.small { height: 22px; margin: 0 6px 6px; }
 
 /* ---------- player bar ---------- */
-.playerbar { grid-area: bar; display: grid; grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr) minmax(160px, 1fr); align-items: center; gap: 16px; padding: 0 20px; background: var(--bg2); border-top: 1px solid var(--line); position: relative; z-index: 5; }
+.playerbar { grid-area: bar; display: grid; grid-template-columns: minmax(180px, 1fr) minmax(300px, 2fr) minmax(160px, 1fr); align-items: center; gap: 16px; padding: 0 20px env(safe-area-inset-bottom); background: var(--bg2); border-top: 1px solid var(--line); position: relative; z-index: 5; }
 .playerbar .now { display: flex; align-items: center; gap: 12px; text-align: left; min-width: 0; grid-column: 1; }
 .playerbar .heart { position: absolute; left: 0; display: none; }
 .cover, .np-cover { background: linear-gradient(var(--ca, 135deg), hsl(var(--h, 250) var(--cover-s1) 38%), hsl(var(--h2, 280) var(--cover-s2) 22%)); }
@@ -295,6 +295,7 @@ button.th:hover, .th.on { color: var(--text); }
 .buttons { display: flex; align-items: center; gap: 6px; }
 .play { width: 44px; height: 44px; border-radius: 50%; background: var(--text); color: var(--bg); display: grid; place-items: center; font-size: 22px; }
 .play:hover { transform: scale(1.05); }
+.icon-btn.skip { width: 44px; height: 44px; font-size: 32px; }
 .spin { width: 18px; height: 18px; border: 2px solid color-mix(in srgb, var(--bg) 25%, transparent); border-top-color: var(--bg); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .seek { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -357,7 +358,7 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
 }
 
 @media (max-width: 800px) {
-  :root { --bar-h: calc(140px + env(safe-area-inset-bottom)); --sidebar-w: 0px; }
+  :root { --bar-h: calc(152px + env(safe-area-inset-bottom)); --sidebar-w: 0px; }
   .app, .app.np-open { grid-template-columns: minmax(0, 1fr); grid-template-areas: "main" "bar"; }
   .sidebar { position: fixed; z-index: 40; left: 0; top: 0; bottom: 0; width: 270px; transform: translateX(-100%); transition: transform 0.2s; padding-top: 24px; }
   .sidebar.open { transform: none; }
@@ -375,7 +376,7 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
   .c-title .sub { display: block; }
   .c-act .icon-btn { opacity: 1; }
   .c-len small { display: none; }
-  .playerbar { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 8px; padding: 8px 18px calc(8px + env(safe-area-inset-bottom)); }
+  .playerbar { grid-template-columns: 1fr auto; grid-template-rows: auto auto; gap: 4px 8px; padding: 8px 18px calc(20px + env(safe-area-inset-bottom)); }
   .playerbar .now { grid-column: 1; grid-row: 1; }
   .playerbar .heart { display: none; }
   .extras { grid-column: 2; grid-row: 1; }
@@ -385,6 +386,12 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
   .seek { font-size: 13px; gap: 12px; }
   .nowplaying { width: 100%; bottom: var(--bar-h); }
   .field { flex-wrap: wrap; }
+}
+
+/* Touch screens: keep the seek bar clear of the edge where the system's swipe gestures start (iPad home indicator). */
+@media (pointer: coarse) and (min-width: 801px) {
+  :root { --bar-h: calc(112px + env(safe-area-inset-bottom)); }
+  .playerbar { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
