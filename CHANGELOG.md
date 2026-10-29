@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.10.1 — 2026-10-29
+
+*Next* no longer gets stuck on the same tune. If you played a tune from a short list (a single favorite, say) and then went back to the
+Library, *Next* kept replaying that one tune because it was still following the list you started from. Now, once that list has nothing
+left to play, *Next* carries on with the list you are looking at.
+
 ## 0.10.0 — 2026-10-29
 
 You can now keep the whole HVSC in your browser. Until now the online catalogue only downloaded the list of tunes and fetched each tune the

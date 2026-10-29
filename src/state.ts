@@ -452,11 +452,27 @@ export function stop() {
   void audio.setPaused(true);
 }
 
+function queueRanOut(repeatAll: boolean) {
+  return queue.length <= 1 || (!repeatAll && queueIndex + 1 >= queue.length);
+}
+
+/** Switches the queue to the list on screen, positioned just after the playing tune (or at its top). */
+function adoptVisibleQueue() {
+  const list = visible.value;
+  if (view.value === queueView || !list.length) return false;
+  queueView = view.value;
+  queue = list.map((t) => t.path);
+  const at = current.value ? queue.indexOf(current.value.path) : -1;
+  queueIndex = at + 1 < queue.length ? at + 1 : 0;
+  return true;
+}
+
 export function next(auto = false) {
   if (!queue.length) return;
   const s = settings.value;
   if (auto && s.repeat === "one" && current.value) return void start(current.value.path, song.value);
   if (current.value) played.push(current.value.path);
+  if (!auto && queueRanOut(s.repeat === "all") && adoptVisibleQueue()) return void start(queue[queueIndex], null);
   if (s.shuffle && queue.length > 1) {
     let i = queueIndex;
     while (i === queueIndex) i = Math.floor(Math.random() * queue.length);
