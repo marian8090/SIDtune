@@ -89,7 +89,24 @@ export const visible = computed<TuneMeta[]>(() => {
 
 // ---------- persistence ----------
 
+export const storagePersisted = signal<boolean | null>(null);
+let persistAsked = false;
+
+/** Asks the browser not to evict our data under storage pressure; Firefox shows a prompt, so wait until there is something to keep. */
+async function requestPersistence() {
+  const st = navigator.storage;
+  if (!st?.persist) return;
+  if (await st.persisted()) storagePersisted.value = true;
+  else if (!persistAsked && (favorites.value.length || playlists.value.length || localTunes.value.length)) {
+    persistAsked = true;
+    storagePersisted.value = await st.persist();
+  } else storagePersisted.value = false;
+}
+
 function persist() {
+  effect(() => {
+    if (!persistAsked && (favorites.value.length || playlists.value.length || localTunes.value.length)) void requestPersistence();
+  });
   effect(() => void kvSet("settings", settings.value));
   effect(() => void kvSet("favorites", favorites.value));
   effect(() => void kvSet("playlists", playlists.value));
@@ -116,6 +133,7 @@ export async function boot() {
   if (st) stil.value = parseStil(st);
   if (r) roms.value = r;
   persist();
+  void requestPersistence();
   booted.value = true;
   setupMediaSession();
   void openSharedLink(connectHvsc());
@@ -498,6 +516,50 @@ function save(blob: Blob, name: string) {
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 10_000);
+}
+
+// ---------- backup ----------
+
+interface Backup {
+  app: "sidtune";
+  version: 1;
+  favorites: string[];
+  playlists: Playlist[];
+  history: string[];
+  settings: Settings;
+}
+
+export function exportBackup() {
+  const b: Backup = { app: "sidtune", version: 1, favorites: favorites.value, playlists: playlists.value, history: history.value, settings: settings.value };
+  save(new Blob([JSON.stringify(b, null, 1)], { type: "application/json" }), `sidtune-backup-${new Date().toISOString().slice(0, 10)}.json`);
+}
+
+export async function restoreBackup(file: File) {
+  let b: Partial<Backup>;
+  try {
+    b = JSON.parse(await file.text());
+  } catch {
+    b = {};
+  }
+  const strings = (x: unknown): x is string[] => Array.isArray(x) && x.every((p) => typeof p === "string");
+  const lists = (x: unknown): x is Playlist[] =>
+    Array.isArray(x) && x.every((p) => p && typeof p.id === "string" && typeof p.name === "string" && strings(p.paths));
+  if (b.app !== "sidtune" || !strings(b.favorites) || !lists(b.playlists) || !strings(b.history)) {
+    message.value = "That file is not a SIDtune backup.";
+    return;
+  }
+  favorites.value = b.favorites;
+  playlists.value = b.playlists;
+  history.value = b.history;
+  if (b.settings && typeof b.settings === "object") {
+    const hvscBefore = settings.value.hvsc;
+    updateSettings({ ...DEFAULT_SETTINGS, ...b.settings });
+    setVolume(settings.value.volume);
+    if (settings.value.hvsc !== hvscBefore) void connectHvsc();
+  }
+  if (view.value.startsWith("pl:") && !playlists.value.some((p) => `pl:${p.id}` === view.value)) view.value = "all";
+  const n = b.playlists.length;
+  message.value = `Restored ${b.favorites.length.toLocaleString()} favorite${b.favorites.length === 1 ? "" : "s"} and ${n} playlist${n === 1 ? "" : "s"}.`;
 }
 
 export async function downloadCurrent(format: DownloadFormat) {

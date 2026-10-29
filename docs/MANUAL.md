@@ -158,8 +158,13 @@ the media controls in your browser.
 
 ## 9. Your data
 
-- Everything SIDtune stores (imported tunes, playlists, favorites, history, settings) lives in this browser on this device. Clearing the
-  site's data in your browser removes it.
+- Everything SIDtune stores (imported tunes, playlists, favorites, history, settings) lives in this browser on this device. Updates to
+  SIDtune keep it, but clearing the site's data in your browser removes it, and another browser, device or web address starts empty.
+- Once you have favorites, playlists or imported tunes, SIDtune asks the browser to keep its data even when disk space runs low (Firefox
+  asks you first). Settings shows whether the browser agreed.
+- *Settings → Backup → Save backup* saves your favorites, playlists, history and settings as a small file. *Restore a backup* loads such a
+  file and replaces what's there. Use it to move to another browser or device, or as insurance. Imported tunes are not part of the backup;
+  import the folder again.
 - *Settings → Library → Clear library* removes imported tunes, song lengths and STIL notes but keeps favorites and playlists.
 - Nothing is uploaded. The only network traffic is fetching the online catalogue and the tunes you play from it.
 

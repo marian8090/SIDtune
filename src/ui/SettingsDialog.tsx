@@ -3,7 +3,7 @@ import { font, FONTS, showWelcome, theme, THEMES, tooltips, type FontId, type Th
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
-import { aboutOpen, connectHvsc, docOpen, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
+import { aboutOpen, connectHvsc, docOpen, exportBackup, favorites, playlists, restoreBackup, storagePersisted, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
 import { confirmDialog } from "./Ask";
 import { Close } from "./Icons";
 
@@ -215,6 +215,36 @@ export function SettingsDialog() {
           >
             Save ROMs
           </button>
+        </div>
+
+        <h4>Backup</h4>
+        <div class="field">
+          <span>
+            Save a backup
+            <small>
+              {favorites.value.length.toLocaleString()} favorites and {playlists.value.length} playlists, plus history and settings, as a file. Keep it
+              to move to another browser or device, or in case this browser clears its data.
+              {storagePersisted.value ? " This browser has agreed to keep SIDtune’s data." : ""}
+            </small>
+          </span>
+          <button class="btn" onClick={exportBackup}>Save backup</button>
+        </div>
+        <div class="field">
+          <span>
+            Restore a backup
+            <small>Replaces your current favorites, playlists, history and settings with the ones in the file.</small>
+          </span>
+          <input
+            type="file"
+            accept=".json,application/json"
+            onChange={async (e) => {
+              const input = e.currentTarget as HTMLInputElement;
+              const f = input.files?.[0];
+              input.value = "";
+              if (f && (await confirmDialog("Restore this backup?", { text: "Your current favorites, playlists, history and settings are replaced.", ok: "Restore" })))
+                await restoreBackup(f);
+            }}
+          />
         </div>
 
         <h4>Library</h4>
