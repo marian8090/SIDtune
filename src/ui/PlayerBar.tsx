@@ -49,13 +49,13 @@ export function PlayerBar() {
           <button class={`icon-btn ${s.shuffle ? "on" : ""}`} aria-pressed={s.shuffle} title={`Shuffle: ${s.shuffle ? "on" : "off"} (S)`} onClick={() => updateSettings({ shuffle: !s.shuffle })}>
             <Shuffle />
           </button>
-          <button class="icon-btn skip" title="Previous (<)" onClick={previous}>
+          <button class="icon-btn skip" title="Previous (←)" onClick={previous}>
             <Prev />
           </button>
           <button class="play" title={playing.value ? "Pause" : "Play"} onClick={() => void togglePlay()}>
             {loading.value ? <span class="spin" /> : playing.value ? <Pause /> : <Play />}
           </button>
-          <button class="icon-btn skip" title="Next (>)" onClick={() => next()}>
+          <button class="icon-btn skip" title="Next (→)" onClick={() => next()}>
             <Next />
           </button>
           <button

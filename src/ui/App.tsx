@@ -76,11 +76,13 @@ export function App() {
       if (e.key === " ") {
         e.preventDefault();
         void togglePlay();
-      } else if (e.key === "ArrowRight") e.shiftKey ? next() : seek(position.value + 10);
-      else if (e.key === "ArrowLeft") e.shiftKey ? previous() : seek(position.value - 10);
-      else if (e.key === ">") next();
-      else if (e.key === "<") previous();
-      else if (e.key === "/") {
+      } else if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+        e.preventDefault();
+        const fwd = e.key === "ArrowRight";
+        if (e.shiftKey) seek(position.value + (fwd ? 10 : -10));
+        else if (fwd) next();
+        else previous();
+      } else if (e.key === "/") {
         e.preventDefault();
         document.querySelector<HTMLInputElement>(".search input")?.focus();
       } else if (e.key === "?") docOpen.value = docOpen.value === "manual" ? null : "manual";
