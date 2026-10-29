@@ -1,6 +1,6 @@
 {
   "name": "sidtune",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "description": "A browser-based player for the High Voltage SID Collection, inspired by ultraSID.",
   "license": "GPL-3.0-or-later",
   "private": true,

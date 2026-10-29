@@ -41,7 +41,7 @@ so SIDtune cannot include them. If you own copies, add them under *Settings → 
   they follow the new results; clear the search and they cover the whole list again. Looking at another list (Favorites, say) leaves
   what plays next alone until you start a tune there.
 - **Shuffle** and **Repeat** sit next to the play button (or press `S` and `R`). Repeat cycles through off, all, and one.
-- **Seek** with the slider under the transport, or `←` and `→` for 10 seconds at a time. Seeking is instant once the background render
+- **Seek** with the slider under the transport, or `Shift+←` and `Shift+→` for 10 seconds at a time. Seeking is instant once the background render
   has caught up (see *Instant seeking* below).
 
 ### Subtunes
@@ -58,7 +58,7 @@ Many SID files contain several tunes (a title tune, in-game music, jingles). The
 
 ## 3. Now Playing
 
-Click the tune in the player bar (or press `N`) to open the Now Playing panel. It shows:
+On a wide window the Now Playing panel is open from the start; on smaller screens click the tune in the player bar (or press `N`) to open it. It shows:
 
 - the title, composer, release and chip details (6581 or 8580, PAL or NTSC, number of SID chips);
 - a **visualiser**: a scrolling piano roll of every voice on every SID chip, coloured by waveform, plus an oscilloscope and the filter
@@ -137,9 +137,8 @@ Shortcuts work whenever you are not typing in a text field.
 | Key | Action |
 |---|---|
 | `Space` | Play or pause |
-| `←` / `→` | Seek back or forward 10 seconds |
-| `<` / `>` | Previous or next tune |
-| `Shift+←` / `Shift+→` | Previous or next tune |
+| `←` / `→` | Previous or next tune |
+| `Shift+←` / `Shift+→` | Seek back or forward 10 seconds |
 | `1` – `9` | Play subtune 1 to 9 |
 | `+` / `-` | Volume up or down |
 | `S` | Shuffle on or off |

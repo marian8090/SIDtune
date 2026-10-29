@@ -2,6 +2,14 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.8.0 — 2026-10-29
+
+The arrow keys now change tunes: `→` plays the next tune and `←` the previous one. Seeking moved to `Shift+→` and `Shift+←` (10 seconds
+at a time). The `<` and `>` keys are gone, since they didn't reliably reach SIDtune on every keyboard layout.
+
+The Now Playing panel is open from the start on a wide window, so you see what's playing without pressing `N`. On smaller screens, where
+the panel would cover the tune list, it stays closed until you open it.
+
 ## 0.7.1 — 2026-10-29
 
 Shuffle and next now follow your search as you change it. Before, SIDtune remembered the search results from the moment you started a tune:
