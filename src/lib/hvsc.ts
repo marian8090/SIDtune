@@ -66,3 +66,26 @@ export async function fetchRemoteTune(t: TuneMeta): Promise<ArrayBuffer> {
   if (res.status === 200) throw new Error("the HVSC server does not support range requests");
   throw new Error(`the HVSC server answered HTTP ${res.status}`);
 }
+
+/** Downloads a whole pack, reporting bytes as they arrive. */
+export async function fetchPack(part: number, signal: AbortSignal, onBytes: (n: number) => void): Promise<ArrayBuffer> {
+  const res = await fetch(`${HVSC_URL}/${parts[part]}`, { signal });
+  if (!res.ok || !res.body) throw new Error(`the HVSC server answered HTTP ${res.status}`);
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  const reader = res.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    length += value.length;
+    onBytes(value.length);
+  }
+  const out = new Uint8Array(length);
+  let at = 0;
+  for (const c of chunks) {
+    out.set(c, at);
+    at += c.length;
+  }
+  return out.buffer;
+}

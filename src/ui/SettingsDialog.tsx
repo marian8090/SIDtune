@@ -1,11 +1,59 @@
-import { useRef } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 import { font, FONTS, showWelcome, theme, THEMES, tooltips, type FontId, type ThemeId } from "../lib/prefs";
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
-import { aboutOpen, connectHvsc, docOpen, exportBackup, favorites, playlists, restoreBackup, storagePersisted, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
+import { aboutOpen, collectionDownload, collectionMissingBytes, connectHvsc, docOpen, downloadCollection, stopCollectionDownload, exportBackup, favorites, playlists, restoreBackup, storagePersisted, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
 import { confirmDialog } from "./Ask";
 import { Close } from "./Icons";
+
+const mb = (bytes: number) => `${Math.round(bytes / 1048576).toLocaleString()} MB`;
+
+function CollectionDownload() {
+  const dl = collectionDownload.value;
+  const [missing, setMissing] = useState<number | null>(null);
+  useEffect(() => {
+    if (!dl) void collectionMissingBytes().then(setMissing);
+  }, [dl, hvscStatus.value.text]);
+  if (hvscStatus.value.state !== "ready") return null;
+  return (
+    <div class="field">
+      <span>
+        Download the whole collection
+        <small>
+          {dl
+            ? `${mb(dl.done)} of ${mb(dl.total)}. You can keep listening meanwhile.`
+            : missing === 0
+              ? "Every tune is stored in this browser and plays offline."
+              : `Stores every tune in this browser so the whole HVSC plays offline${missing ? ` (about ${mb(missing)} to download)` : ""}. Otherwise tunes download as you play them.`}
+        </small>
+        {dl && (
+          <div class="progress">
+            <div style={{ width: `${(100 * dl.done) / dl.total}%` }} />
+            <span>{Math.floor((100 * dl.done) / dl.total)}%</span>
+          </div>
+        )}
+      </span>
+      {dl ? (
+        <button class="btn" onClick={stopCollectionDownload}>Stop</button>
+      ) : (
+        <button
+          class="btn"
+          disabled={missing === 0}
+          onClick={async () => {
+            const est = await navigator.storage?.estimate?.();
+            const free = est?.quota !== undefined && est.usage !== undefined ? est.quota - est.usage : undefined;
+            const room = free !== undefined && missing !== null && free < missing * 1.1 ? ` This browser reports only ${mb(free)} free for SIDtune, so it may stop part-way.` : "";
+            if (await confirmDialog("Download the whole collection?", { text: `About ${mb(missing ?? 0)} will be downloaded and stored in this browser.${room}`, ok: "Download" }))
+              void downloadCollection();
+          }}
+        >
+          Download
+        </button>
+      )}
+    </div>
+  );
+}
 
 async function readBytes(f: File | undefined) {
   return f ? new Uint8Array(await f.arrayBuffer()) : undefined;
@@ -171,6 +219,7 @@ export function SettingsDialog() {
                 <button class="btn" onClick={() => void connectHvsc(true)}>Refresh</button>
               </div>
             )}
+            {s.hvsc && <CollectionDownload />}
           </>
         )}
 
@@ -251,9 +300,9 @@ export function SettingsDialog() {
         <div class="field">
           <span>
             {localTunes.value.length.toLocaleString()} imported tunes stored in this browser
-            <small>Removes imported tunes, song lengths and STIL. Favorites and playlists are kept.</small>
+            <small>Removes imported tunes, tunes stored from the online catalogue, song lengths and STIL. Favorites and playlists are kept.</small>
           </span>
-          <button class="btn danger" onClick={async () => (await confirmDialog("Clear the library?", { text: "Removes all imported tunes from this browser. Favorites and playlists are kept.", ok: "Clear library", danger: true })) && void wipeLibrary()}>
+          <button class="btn danger" onClick={async () => (await confirmDialog("Clear the library?", { text: "Removes all imported tunes and tunes stored from the online catalogue. Favorites and playlists are kept.", ok: "Clear library", danger: true })) && void wipeLibrary()}>
             Clear library
           </button>
         </div>

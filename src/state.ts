@@ -4,8 +4,8 @@ import { AudioController, type RomSet } from "./audio/controller";
 import { anchorMedia, setOnSystemPause } from "./audio/media-anchor";
 import { exportAudio, type AudioFormat } from "./audio/export";
 import type { CacheMode, TuneDetails } from "./audio/protocol";
-import { allMeta, clearLibrary, getFile, kvDelete, kvGet, kvSet, putFile } from "./lib/db";
-import { fetchManifest, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type Manifest } from "./lib/hvsc";
+import { allMeta, clearLibrary, fileKeys, getFile, kvDelete, kvGet, kvSet, putFile, putFiles } from "./lib/db";
+import { fetchManifest, fetchPack, fetchRemoteTune, fetchText, HVSC_URL, parseIndex, type Manifest } from "./lib/hvsc";
 import { expandZips, runImport, type ImportItem } from "./lib/importer";
 import { lengthForPath, parseSonglengths, type Songlengths } from "./lib/songlengths";
 import { parseStil } from "./lib/stil";
@@ -38,6 +38,8 @@ export const songlengths = signal<Songlengths | null>(null);
 export const stil = signal<Map<string, string>>(new Map());
 export const remoteStil = signal<Map<string, string>>(new Map());
 export const hvscAvailable = HVSC_URL !== "";
+export const hvscManifest = signal<Manifest | null>(null);
+export const collectionDownload = signal<{ done: number; total: number } | null>(null);
 
 export const view = signal<View>("all");
 export const query = signal("");
@@ -93,11 +95,11 @@ export const storagePersisted = signal<boolean | null>(null);
 let persistAsked = false;
 
 /** Asks the browser not to evict our data under storage pressure; Firefox shows a prompt, so wait until there is something to keep. */
-async function requestPersistence() {
+async function requestPersistence(force = false) {
   const st = navigator.storage;
   if (!st?.persist) return;
   if (await st.persisted()) storagePersisted.value = true;
-  else if (!persistAsked && (favorites.value.length || playlists.value.length || localTunes.value.length)) {
+  else if (!persistAsked && (force || favorites.value.length || playlists.value.length || localTunes.value.length)) {
     persistAsked = true;
     storagePersisted.value = await st.persist();
   } else storagePersisted.value = false;
@@ -170,6 +172,7 @@ export async function addTestTone() {
 
 export async function wipeLibrary() {
   stop();
+  stopCollectionDownload();
   await clearLibrary();
   await Promise.all([kvDelete("songlengths"), kvDelete("stil")]);
   localTunes.value = [];
@@ -187,6 +190,66 @@ export async function saveRoms(r: RomSet) {
 }
 
 // ---------- online HVSC catalogue ----------
+
+let collectionAbort: AbortController | null = null;
+
+/** Tunes of the online catalogue not yet stored in this browser, grouped by pack. */
+async function missingByPart(): Promise<Map<number, TuneMeta[]>> {
+  const have = new Set(await fileKeys());
+  const byPart = new Map<number, TuneMeta[]>();
+  for (const t of remoteTunes.value) {
+    if (!t.remote || have.has(t.path)) continue;
+    const list = byPart.get(t.remote.part);
+    if (list) list.push(t);
+    else byPart.set(t.remote.part, [t]);
+  }
+  return byPart;
+}
+
+/** Bytes still to download for the whole collection (whole packs, since that is what gets fetched). */
+export async function collectionMissingBytes(): Promise<number> {
+  const man = hvscManifest.value;
+  if (!man) return 0;
+  return [...(await missingByPart()).keys()].reduce((a, i) => a + (man.parts[i]?.size ?? 0), 0);
+}
+
+/** Downloads every pack that still has tunes missing here and stores each tune, so the whole catalogue plays offline. */
+export async function downloadCollection() {
+  const man = hvscManifest.value;
+  if (!man || collectionDownload.value) return;
+  const byPart = await missingByPart();
+  if (!byPart.size) {
+    message.value = "The whole collection is already in this browser.";
+    return;
+  }
+  const total = [...byPart.keys()].reduce((a, i) => a + (man.parts[i]?.size ?? 0), 0);
+  collectionDownload.value = { done: 0, total };
+  collectionAbort = new AbortController();
+  void requestPersistence(true);
+  let stored = 0;
+  try {
+    for (const [part, list] of byPart) {
+      const buf = await fetchPack(part, collectionAbort.signal, (n) => {
+        const d = collectionDownload.value!;
+        collectionDownload.value = { done: d.done + n, total: d.total };
+      });
+      await putFiles(list.map((t) => [t.path, buf.slice(t.remote!.offset, t.remote!.offset + t.size)]));
+      stored += list.length;
+    }
+    message.value = `The whole HVSC is now in this browser and plays offline (${stored.toLocaleString()} tunes added).`;
+  } catch (err) {
+    message.value = collectionAbort.signal.aborted
+      ? `Download stopped. ${stored.toLocaleString()} tunes were kept; downloading again picks up the rest.`
+      : `The download failed: ${err instanceof Error ? err.message : err}. Tunes already stored are kept.`;
+  } finally {
+    collectionDownload.value = null;
+    collectionAbort = null;
+  }
+}
+
+export function stopCollectionDownload() {
+  collectionAbort?.abort();
+}
 
 /** Cached copy first, then the server (and cached for next time). */
 async function tuneData(meta: TuneMeta): Promise<ArrayBuffer> {
@@ -224,6 +287,7 @@ export async function connectHvsc(forceRefresh = false) {
       kvGet<Manifest>("hvsc-manifest"),
       kvGet<string>("hvsc-stil"),
     ]);
+    if (cachedMan) hvscManifest.value = cachedMan;
     if (cachedText && !forceRefresh) {
       const { tunes: list, hvsc } = parseIndex(cachedText);
       remoteTunes.value = list;
@@ -253,6 +317,7 @@ export async function connectHvsc(forceRefresh = false) {
       await kvSet("hvsc-stil", text);
     }
     await kvSet("hvsc-manifest", man);
+    hvscManifest.value = man;
   } catch (err) {
     hvscStatus.value = { state: "error", text: `Could not load the HVSC catalogue: ${err instanceof Error ? err.message : err}` };
   }
