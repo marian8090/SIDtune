@@ -37,7 +37,9 @@ so SIDtune cannot include them. If you own copies, add them under *Settings → 
 
 - **Library** lists everything. Click a column heading to sort by title, composer or release; otherwise tunes are listed by path.
 - **Search** (the box at the top, or press `/`) matches title, composer, year and path as you type.
-- **Click a tune** to play it. Next and previous then follow the list you started from, including your current search or sort.
+- **Click a tune** to play it. Next, previous and shuffle then follow the list you started from. Change the search or the sort and
+  they follow the new results; clear the search and they cover the whole list again. Looking at another list (Favorites, say) leaves
+  what plays next alone until you start a tune there.
 - **Shuffle** and **Repeat** sit next to the play button (or press `S` and `R`). Repeat cycles through off, all, and one.
 - **Seek** with the slider under the transport, or `←` and `→` for 10 seconds at a time. Seeking is instant once the background render
   has caught up (see *Instant seeking* below).

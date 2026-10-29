@@ -244,6 +244,8 @@ export async function connectHvsc(forceRefresh = false) {
 
 let queue: string[] = [];
 let queueIndex = -1;
+/** The list the queue was started from. While it is on screen, the queue follows it, so a new search or sort changes what plays next. */
+let queueView: View | null = null;
 let currentData: ArrayBuffer | null = null;
 let playToken = 0;
 const played: string[] = [];
@@ -318,6 +320,7 @@ async function start(path: string, songIndex: number | null) {
 
 /** Starts a tune from the currently visible list so next/previous follow what the user sees. */
 export function playFromList(path: string, songIndex: number | null = null) {
+  queueView = view.value;
   queue = visible.value.map((t) => t.path);
   queueIndex = queue.indexOf(path);
   if (queueIndex < 0) {
@@ -330,6 +333,7 @@ export function playFromList(path: string, songIndex: number | null = null) {
 
 export function playPaths(paths: string[], first = 0) {
   if (!paths.length) return;
+  queueView = null;
   queue = [...paths];
   queueIndex = first;
   played.length = 0;
@@ -435,6 +439,16 @@ export function toggleVoice(v: number) {
   voiceMuted.value = m;
   audio.setMute(v, m[v]);
 }
+
+effect(() => {
+  const list = visible.value;
+  // a search with no matches (often half-typed) keeps the previous queue rather than leaving nothing to play
+  if (view.value !== queueView || !list.length) return;
+  queue = list.map((t) => t.path);
+  const playingPath = current.peek()?.path;
+  // -1 when the playing tune is filtered out: next then starts from the top of the new list
+  queueIndex = playingPath ? queue.indexOf(playingPath) : -1;
+});
 
 // position ticker / auto-advance
 setInterval(() => {

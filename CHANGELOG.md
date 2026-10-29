@@ -2,6 +2,13 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.7.1 — 2026-10-29
+
+Shuffle and next now follow your search as you change it. Before, SIDtune remembered the search results from the moment you started a tune:
+search for "mean", start a tune, then clear the search, and shuffle still only ever picked from the "mean" tunes. Now clearing or changing
+the search (or the sort) changes what plays next straight away. A search that finds nothing keeps the previous selection, and browsing
+another list such as Favorites leaves what plays next alone until you start a tune there.
+
 ## 0.7.0 — 2026-10-28
 
 Two retro fonts join the font choice in *Settings → Appearance*: the Apple II's 40-column lettering (Print Char 21) and the C64's own
