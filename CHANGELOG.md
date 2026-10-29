@@ -2,6 +2,13 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.9.0 — 2026-10-29
+
+Your favorites and playlists are now better protected. Updates to SIDtune never touched them, but the browser could still throw them away
+when it ran low on space, and they were stuck in the one browser you made them in. Now SIDtune asks the browser to keep its data for good
+as soon as there is something worth keeping (Firefox asks you first), and *Settings → Backup* saves your favorites, playlists, history and
+settings to a small file. Restore that file in another browser, on another device, or after clearing site data to get everything back.
+
 ## 0.8.0 — 2026-10-29
 
 The arrow keys now change tunes: `→` plays the next tune and `←` the previous one. Seeking moved to `Shift+→` and `Shift+←` (10 seconds
