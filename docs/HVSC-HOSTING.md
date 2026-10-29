@@ -24,6 +24,8 @@ private") or use it only with `npm run dev`. The index and STIL alone carry no a
 
 The app downloads the index once (cached in IndexedDB), so search is instant and offline-capable. A tune is fetched with an HTTP
 `Range` request for just its bytes (about 5 KB) when you play it, then cached locally. The next tune in the queue is prefetched.
+*Download the whole collection* in Settings instead fetches every pack in full (plain `GET`) and stores each tune, so a single user can
+pull the entire collection: bear that in mind for bandwidth and for the copyright note above.
 
 ## Build
 

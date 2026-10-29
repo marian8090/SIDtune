@@ -12,6 +12,10 @@ There are two ways to fill your library, and you can use both at once.
 your library straight away. Only the list is downloaded up front; each tune is fetched the first time you play it and kept for next time.
 It refreshes itself when a new HVSC release comes out. You can switch it off under *Settings → Online HVSC*.
 
+To have every tune available offline, use *Settings → Online HVSC → Download the whole collection*. It shows how much is left to fetch
+(several hundred MB for the full HVSC), keeps playing while it downloads, and can be stopped and resumed later; tunes already stored are
+skipped. *Clear library* removes the stored tunes again.
+
 **Your own files.** Use *Add folder* or *Add files / zip* at the bottom of the sidebar, or drop files anywhere on the page:
 
 - an unpacked HVSC folder (pick the `C64Music` folder),
@@ -165,7 +169,8 @@ the media controls in your browser.
 - *Settings → Backup → Save backup* saves your favorites, playlists, history and settings as a small file. *Restore a backup* loads such a
   file and replaces what's there. Use it to move to another browser or device, or as insurance. Imported tunes are not part of the backup;
   import the folder again.
-- *Settings → Library → Clear library* removes imported tunes, song lengths and STIL notes but keeps favorites and playlists.
+- *Settings → Library → Clear library* removes imported tunes, tunes stored from the online catalogue, song lengths and STIL notes but keeps
+  favorites and playlists.
 - Nothing is uploaded. The only network traffic is fetching the online catalogue and the tunes you play from it.
 
 ## 10. Troubleshooting

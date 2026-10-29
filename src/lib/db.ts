@@ -86,3 +86,16 @@ export async function putFile(path: string, data: ArrayBuffer): Promise<void> {
   tx.objectStore("files").put(data, path);
   await done(tx);
 }
+
+export async function putFiles(items: [path: string, data: ArrayBuffer][]): Promise<void> {
+  const db = await open();
+  const tx = db.transaction("files", "readwrite");
+  const files = tx.objectStore("files");
+  for (const [path, data] of items) files.put(data, path);
+  await done(tx);
+}
+
+export async function fileKeys(): Promise<string[]> {
+  const db = await open();
+  return wrap(db.transaction("files").objectStore("files").getAllKeys()) as Promise<string[]>;
+}

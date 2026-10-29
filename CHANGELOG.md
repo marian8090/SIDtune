@@ -2,6 +2,14 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.10.0 — 2026-10-29
+
+You can now keep the whole HVSC in your browser. Until now the online catalogue only downloaded the list of tunes and fetched each tune the
+first time you played it, so anything you hadn't played yet needed a connection. *Settings → Online HVSC → Download the whole collection*
+stores every tune, after which the entire collection plays offline. It tells you how much is left to download, keeps the music playing
+meanwhile, and can be stopped and picked up later without fetching anything twice. *Clear library* now also says that it removes these
+stored tunes.
+
 ## 0.9.0 — 2026-10-29
 
 Your favorites and playlists are now better protected. Updates to SIDtune never touched them, but the browser could still throw them away
