@@ -65,6 +65,11 @@ function details(e: SidAudioEngine): TuneDetails {
 
 // ---------- cache ----------
 
+function reportCache() {
+  const sec = cacheMode.mode === "prerender" ? (cache.length * CHUNK_FRAMES) / sampleRate : null;
+  post({ type: "cache", gen, sec, done: cacheDone });
+}
+
 function resetCache(mode: CacheMode) {
   cacheToken++;
   cache = [];
@@ -91,6 +96,7 @@ function resetCache(mode: CacheMode) {
   } else {
     cacheDone = true; // nothing is being rendered in the background
   }
+  reportCache();
 }
 
 function onCachePort(e: MessageEvent) {
@@ -98,13 +104,16 @@ function onCachePort(e: MessageEvent) {
   if (m.token !== cacheToken) return;
   if (m.type === "chunk") {
     if (m.idx === cache.length) cache.push({ pcm: m.pcm, chans: m.chans, regs: m.regs });
+    if (cache.length % 16 === 0) reportCache();
   } else if (m.type === "done") {
     cacheDone = true;
     cacheEnded = m.ended;
+    reportCache();
   } else if (m.type === "error") {
     console.warn("[sidtune] background render failed:", m.message);
     cacheMode = { mode: "off" };
     cacheDone = true;
+    reportCache();
   }
 }
 

@@ -34,6 +34,7 @@ export class AudioController {
   onSeeked: () => void = () => {};
   onWorking: () => void = () => {};
   onError: (message: string) => void = () => {};
+  onCacheProgress: (sec: number | null, done: boolean) => void = () => {};
 
   /** Safe to call repeatedly; must first run inside a user gesture. */
   init(settings: EngineSettings, roms: RomSet, volume: number, fx: { mode: FxMode; eq: [number, number, number] }): Promise<void> {
@@ -105,6 +106,9 @@ export class AudioController {
       case "error":
         if (m.gen === this.gen) this.onError(m.message);
         break;
+      case "cache":
+        if (m.gen === this.gen) this.onCacheProgress(m.sec, m.done);
+        break;
     }
   }
 
@@ -119,6 +123,7 @@ export class AudioController {
 
   load(data: ArrayBuffer, song: number, startAt = 0, cache: CacheMode = { mode: "off" }) {
     this.newGeneration(startAt);
+    this.onCacheProgress(null, false);
     this.send({ type: "load", gen: this.gen, data: data.slice(0), song, startAt, cache });
   }
 

@@ -62,6 +62,8 @@ export const docOpen = signal<"manual" | "changelog" | null>(null);
 export const aboutOpen = signal(false);
 export const booted = signal(false);
 export const voiceMuted = signal([false, false, false]);
+/** Progress of the background render for instant seeking; null when the current tune isn't being pre-rendered. */
+export const prerendered = signal<{ sec: number; done: boolean } | null>(null);
 
 export const tuneMap = computed(() => new Map(tunes.value.map((t) => [t.path, t])));
 export const favoriteSet = computed(() => new Set(favorites.value));
@@ -345,6 +347,10 @@ audio.onLoaded = (info) => {
   lengthKnown.value = len !== null;
   duration.value = len ?? settings.value.defaultLengthSec;
   updatePositionState();
+};
+
+audio.onCacheProgress = (sec, done) => {
+  prerendered.value = sec === null ? null : { sec, done };
 };
 
 audio.onSeeked = () => {

@@ -25,7 +25,8 @@ after HMR).
   soon as the cache covers the live position; a seek past what is rendered waits for it (`pendingSeek`). Tunes over
   `SEEK_CACHE_MAX_SEC` use `record` mode (remembers played audio only) unless `prerenderLong` is on (the default). Anything that changes
   the mix (voice mute, settings, load) invalidates the cache via `resetCache`; a mute while playing from the cache keeps the old one
-  (`staleCache`) playing until the re-render reaches the playhead. Settings: `seekCache`, `prerenderLong`.
+  (`staleCache`) playing until the re-render reaches the playhead. Settings: `seekCache`, `prerenderLong`,
+  `showPrerender` (progress line under the seek bar, fed by `cache` messages from the playback worker).
 - `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
   generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.
 - `src/audio/fx.ts`: the audio quality modes as a Web Audio graph between the worklet and the volume gain (LR8 crossover, wide-mono, ping-pong delay, convolver reverb, 3-band EQ, plus the REAL speaker chain). Parameter values come from ultraSID's `SIDEffects`/`FXTuning`; mode changes glide via `setTargetAtTime`. Web Audio lowpass/highpass `Q` is in dB, peaking `Q` is linear.

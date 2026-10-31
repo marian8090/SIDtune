@@ -37,6 +37,8 @@ export interface Settings {
   seekCache: boolean;
   /** With seekCache, render tunes longer than SEEK_CACHE_MAX_SEC in full too, instead of keeping only what has been played. */
   prerenderLong: boolean;
+  /** Draw a thin line under the seek bar showing how far the background render has got. */
+  showPrerender: boolean;
   defaultLengthSec: number;
   volume: number;
   shuffle: boolean;
@@ -65,6 +67,7 @@ export const DEFAULT_SETTINGS: Settings = {
   hvsc: true,
   seekCache: true,
   prerenderLong: true,
+  showPrerender: true,
   defaultLengthSec: 180,
   volume: 0.8,
   shuffle: false,

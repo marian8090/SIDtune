@@ -331,7 +331,10 @@ button.th:hover, .th.on { color: var(--text); }
 .spin { width: 18px; height: 18px; border: 2px solid color-mix(in srgb, var(--bg) 25%, transparent); border-top-color: var(--bg); border-radius: 50%; animation: spin 0.7s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .seek { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 560px; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.seek input { flex: 1; }
+.seek-bar { flex: 1; position: relative; display: flex; min-width: 0; }
+.seek-bar input { flex: 1; }
+.seek-bar .prerender { position: absolute; left: 0; top: calc(50% + 4px); height: 1px; background: var(--muted); opacity: 0.7; pointer-events: none; transition: width 0.3s linear; }
+.seek-bar .prerender.done { opacity: 0.35; }
 .extras { grid-column: 3; display: flex; align-items: center; gap: 8px; justify-content: flex-end; color: var(--muted); }
 .vol { width: 110px; }
 

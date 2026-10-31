@@ -35,7 +35,9 @@ export type FromWorker =
   | { type: "working"; gen: number }
   | { type: "error"; gen: number; message: string }
   | { type: "meta"; gen: number; frame: number; regs: Uint8Array[] }
-  | { type: "eof"; gen: number; frame: number };
+  | { type: "eof"; gen: number; frame: number }
+  /** How far the background render has got: seconds rendered, or null when nothing is being pre-rendered. */
+  | { type: "cache"; gen: number; sec: number | null; done: boolean };
 
 /** worklet -> main / worker */
 export interface LevelMessage {

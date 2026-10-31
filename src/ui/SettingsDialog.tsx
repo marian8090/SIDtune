@@ -194,6 +194,18 @@ export function SettingsDialog() {
         </label>
         <label class="field">
           <span>
+            Show pre-render progress
+            <small>A thin line under the seek bar shows how much of the tune is ready for instant seeking.</small>
+          </span>
+          <input
+            type="checkbox"
+            checked={s.showPrerender}
+            disabled={!s.seekCache}
+            onChange={(e) => updateSettings({ showPrerender: (e.currentTarget as HTMLInputElement).checked })}
+          />
+        </label>
+        <label class="field">
+          <span>
             Default length (seconds)
             <small>Used when a tune is not in the song-length database.</small>
           </span>

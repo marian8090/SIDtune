@@ -103,6 +103,8 @@ Under *Settings → Sound*:
 - **Pre-render long tunes** (on by default, needs Instant seeking) renders tunes longer than 10 minutes (5 on phones and tablets) in
   full as well, so they seek instantly too. A 30-minute tune takes about 330 MB of memory. Turn it off and those tunes keep only the part
   you have already heard; seeking beyond that takes a few seconds.
+- **Show pre-render progress** (on by default) draws a thin line under the seek bar showing how much of the tune is ready for instant
+  seeking. It fades once the whole tune is rendered, and starts again from the left after you mute a voice.
 
 ## 5. Downloading
 

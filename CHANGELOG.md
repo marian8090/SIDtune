@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.12.0 — 2026-10-31
+
+A thin line under the seek bar now shows how much of the tune has been rendered for instant seeking, so you can tell where a jump will
+be immediate and where it will have to wait. It fades once the whole tune is ready, and starts over when you mute a voice, since the
+tune is then rendered again with the new mix. Don't want it? Turn off *Show pre-render progress* under *Settings → Sound*.
+
 ## 0.11.0 — 2026-10-31
 
 Long tunes seek instantly too. Until now, tunes longer than 10 minutes (5 on phones and tablets) were only kept in memory as far as you

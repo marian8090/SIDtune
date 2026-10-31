@@ -9,6 +9,7 @@ import {
   nowPlayingOpen,
   playing,
   position,
+  prerendered,
   previous,
   seek,
   settings,
@@ -20,6 +21,11 @@ import {
 import { Expand, Heart, HeartOutline, Next, Pause, Play, Prev, Repeat, Shuffle, Volume } from "./Icons";
 import { SoundButton } from "./SoundMenu";
 import { coverStyle, initials } from "./util";
+
+function PrerenderLine({ sec, done }: { sec: number; done: boolean }) {
+  const pct = done ? 100 : Math.min(100, (sec / Math.max(1, duration.value)) * 100);
+  return <div class={`prerender ${done ? "done" : ""}`} style={{ width: `${pct}%` }} aria-hidden="true" />;
+}
 
 /** Slider value while the user is dragging, so playback updates do not yank the thumb back. */
 const scrub = signal<number | null>(null);
@@ -70,21 +76,24 @@ export function PlayerBar() {
         </div>
         <div class="seek">
           <span>{formatTime(scrub.value ?? position.value)}</span>
-          <input
-            type="range"
-            min={0}
-            max={Math.max(1, duration.value)}
-            step={1}
-            value={Math.min(scrub.value ?? position.value, duration.value)}
-            disabled={!t}
-            aria-label="Seek"
-            style={{ "--p": `${(Math.min(scrub.value ?? position.value, duration.value) / Math.max(1, duration.value)) * 100}%` }}
-            onInput={(e) => (scrub.value = Number((e.currentTarget as HTMLInputElement).value))}
-            onChange={(e) => {
-              scrub.value = null;
-              seek(Number((e.currentTarget as HTMLInputElement).value));
-            }}
-          />
+          <div class="seek-bar">
+            <input
+              type="range"
+              min={0}
+              max={Math.max(1, duration.value)}
+              step={1}
+              value={Math.min(scrub.value ?? position.value, duration.value)}
+              disabled={!t}
+              aria-label="Seek"
+              style={{ "--p": `${(Math.min(scrub.value ?? position.value, duration.value) / Math.max(1, duration.value)) * 100}%` }}
+              onInput={(e) => (scrub.value = Number((e.currentTarget as HTMLInputElement).value))}
+              onChange={(e) => {
+                scrub.value = null;
+                seek(Number((e.currentTarget as HTMLInputElement).value));
+              }}
+            />
+            {t && s.showPrerender && prerendered.value && <PrerenderLine sec={prerendered.value.sec} done={prerendered.value.done} />}
+          </div>
           <span>{formatTime(duration.value)}</span>
         </div>
       </div>
