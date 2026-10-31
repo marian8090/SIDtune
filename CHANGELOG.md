@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.13.1 — 2026-10-31
+
+Fixed "Could not play: … The database connection is closing", which could appear when skipping to the next tune after the tab had been
+in the background or the computer had slept (mostly in Safari). The browser sometimes closes SIDtune's connection to its local library
+on its own; SIDtune now notices and reconnects instead of failing until you reload the page.
+
 ## 0.13.0 — 2026-10-31
 
 The visualiser can now go full screen. Click the button in its top-right corner, or press `V`, and the piano roll and oscilloscope fill
