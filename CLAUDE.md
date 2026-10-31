@@ -21,11 +21,12 @@ after HMR).
 - `src/audio/engine.worker.ts`: runs `libsidplayfp-wasm`'s `SidAudioEngine`, renders 1024-frame PCM chunks about 0.35 s ahead, snapshots SID
   registers with each chunk, and sends PCM straight to the worklet over a `MessageChannel`. Messages are processed one at a time.
 - `src/audio/cache.worker.ts`: second worker (own thread) that renders the whole tune into chunks and posts them to the playback worker
-  over a `MessageChannel`. The playback worker keeps them in `cache[]` and streams from there (`source = "cache"`) after a seek, or as
-  soon as the cache covers the live position; a seek past what is rendered waits for it (`pendingSeek`). Tunes over
+  over a `MessageChannel`. The playback worker keeps them in `cache[]` and streams from there (`source = "cache"`) after a seek, while
+  the live emulator catches up in the background (`catchUp`, exact `renderFrames` steps) and takes over again, so voice mutes stay
+  instant; a seek past what is rendered waits for it (`pendingSeek`). The cache worker reuses one engine across restarts. Tunes over
   `SEEK_CACHE_MAX_SEC` use `record` mode (remembers played audio only) unless `prerenderLong` is on (the default). Anything that changes
   the mix (voice mute, settings, load) invalidates the cache via `resetCache`; a mute while playing from the cache keeps the old one
-  (`staleCache`) playing until the re-render reaches the playhead. Settings: `seekCache`, `prerenderLong`,
+  (`staleCache`) playing until the live emulator or the re-render reaches the playhead. Settings: `seekCache`, `prerenderLong`,
   `showPrerender` (progress line under the seek bar, fed by `cache` messages from the playback worker).
 - `public/sid-worklet.js`: plain JS `AudioWorkletProcessor` (not bundled). Plays queued chunks and reports frames played. Chunks carry a
   generation number; a `flush` message with a new generation drops stale audio. Loads, seeks and settings changes all bump the generation.

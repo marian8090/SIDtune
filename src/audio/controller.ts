@@ -32,7 +32,6 @@ export class AudioController {
 
   onLoaded: (info: TuneDetails) => void = () => {};
   onSeeked: () => void = () => {};
-  onWorking: () => void = () => {};
   onError: (message: string) => void = () => {};
   onCacheProgress: (sec: number | null, done: boolean) => void = () => {};
 
@@ -96,9 +95,6 @@ export class AudioController {
         break;
       case "loaded":
         if (m.gen === this.gen) this.onLoaded(m.info);
-        break;
-      case "working":
-        if (m.gen === this.gen) this.onWorking();
         break;
       case "seeked":
         if (m.gen === this.gen) this.onSeeked();

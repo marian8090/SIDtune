@@ -5,6 +5,8 @@ import type { CacheMode, EngineSettings, FromWorker, LevelMessage, ToWorker, Tun
 
 const CHUNK_FRAMES = 1024;
 const TARGET_BUFFER_S = 0.35;
+/** Frames the live emulator advances per step while it catches up with playback from the cache (about 25 ms of work on reSIDfp). */
+const CATCH_UP_FRAMES = 8192;
 
 interface CachedChunk {
   pcm: Int16Array;
@@ -25,7 +27,6 @@ let cachePort: MessagePort | null = null;
 let gen = 0;
 let sent = 0; // frames sent to the worklet in this generation
 let played = 0; // frames the worklet has consumed in this generation
-let baseSec = 0; // tune position that frame 0 of this generation corresponds to
 let paused = false;
 let busy = false; // load/seek/move in progress
 let eof = false;
@@ -37,6 +38,7 @@ let mutes = [false, false, false];
 let source: "live" | "cache" = "live";
 let liveFrames = 0; // frame position of the live emulator
 let liveAligned = false; // live chunk k is identical to cache chunk k (only true from a clean start)
+let liveEnded = false; // the live emulator ran out of tune while catching up, so it can't take over again
 let cache: CachedChunk[] = [];
 let staleCache: CachedChunk[] | null = null; // the cache from before a mute change, played until `cache` reaches the playhead
 let cacheMode: CacheMode = { mode: "off" };
@@ -125,10 +127,9 @@ function cacheCovers(idx: number): "now" | "wait" | "no" {
   return "no";
 }
 
-function activateCache(idx: number, sec: number, g: number) {
+function activateCache(idx: number, g: number) {
   source = "cache";
   cachePos = idx;
-  baseSec = sec;
   sent = 0;
   played = 0;
   eof = false;
@@ -155,6 +156,27 @@ async function moveLiveTo(frames: number) {
   }
   liveFrames = frames;
   liveAligned = false;
+  liveEnded = false;
+}
+
+/**
+ * While playback streams from the cache (after a seek), moves the live emulator one step towards the playhead in the background,
+ * so a voice mute can be heard straight away once it gets there. Renders rather than fast-forwards: fastForwardContext skips
+ * whole 100k-cycle blocks, which would leave the live audio out of step with the cache.
+ */
+async function catchUp(e: SidAudioEngine) {
+  const target = cachePos * CHUNK_FRAMES;
+  if (liveFrames > target) {
+    await e.loadSidBuffer(new Uint8Array(tuneData!), tuneSong);
+    applyMutes(e, mutes);
+    liveFrames = 0;
+    liveAligned = false;
+    liveEnded = false;
+    return;
+  }
+  const pcm = await e.renderFrames(Math.min(CATCH_UP_FRAMES, target - liveFrames));
+  if (!pcm.length) liveEnded = true;
+  liveFrames += pcm.length / e.getChannels();
 }
 
 async function loadTune(data: ArrayBuffer, song: number, myGen: number, startAt: number, mode: CacheMode) {
@@ -175,9 +197,9 @@ async function loadTune(data: ArrayBuffer, song: number, myGen: number, startAt:
     applyMutes(engine, mutes);
     if (myGen !== gen) return;
     if (startAt > 0) await engine.seekSeconds(startAt);
-    baseSec = startAt;
     liveFrames = Math.round(startAt * sampleRate);
     liveAligned = startAt === 0;
+    liveEnded = false;
     source = "live";
     sent = 0;
     played = 0;
@@ -209,7 +231,13 @@ function emit(pcm: Int16Array, chans: number, regs: Uint8Array[], myGen: number)
 async function pump() {
   for (;;) {
     const e = engine;
-    if (!e || busy || paused || eof || !e.hasTune() || sent - played >= TARGET_BUFFER_S * sampleRate) {
+    const idle = !e || busy || paused || eof || !e.hasTune() || sent - played >= TARGET_BUFFER_S * sampleRate;
+    if (idle && e && !busy && !eof && e.hasTune() && source === "cache" && !pendingSeek && !liveEnded && liveFrames !== cachePos * CHUNK_FRAMES) {
+      await catchUp(e);
+      await sleep(0); // renderFrames resolves without yielding: let the worklet's level reports and control messages in
+      continue;
+    }
+    if (idle) {
       await sleep(12);
       continue;
     }
@@ -219,13 +247,19 @@ async function pump() {
       // waiting for the background render to reach the seek target
       const p = pendingSeek;
       const state = cacheCovers(p.idx);
-      if (state === "now") activateCache(p.idx, p.sec, p.gen);
+      if (state === "now") activateCache(p.idx, p.gen);
       else if (state === "wait") await sleep(15);
       else await liveSeek(p.sec, p.gen);
       continue;
     }
 
     if (source === "cache") {
+      if (liveFrames === cachePos * CHUNK_FRAMES) {
+        // the live emulator has caught up: play from it again, with the current voice mutes
+        source = "live";
+        staleCache = null;
+        continue;
+      }
       if (cachePos < cache.length) {
         const c = cache[cachePos++];
         emit(c.pcm, c.chans, c.regs, myGen);
@@ -251,20 +285,9 @@ async function pump() {
       continue;
     }
 
-    // Once the background render has caught up with playback, play from it and let the live emulator rest, so the tune
-    // isn't emulated twice. A live start that isn't chunk-aligned (resuming mid-tune) renders a short chunk to line up.
-    const offset = liveFrames % CHUNK_FRAMES;
-    const nextChunk = Math.ceil(liveFrames / CHUNK_FRAMES);
-    const handOff = cacheMode.mode === "prerender" && nextChunk < cache.length;
-    if (handOff && offset === 0) {
-      source = "cache";
-      cachePos = nextChunk;
-      continue;
-    }
-
     let pcm: Int16Array;
     try {
-      pcm = await e.renderFrames(handOff ? CHUNK_FRAMES - offset : CHUNK_FRAMES);
+      pcm = await e.renderFrames(CHUNK_FRAMES);
     } catch (err) {
       post({ type: "error", gen: myGen, message: String(err) });
       eof = true;
@@ -292,7 +315,6 @@ async function liveSeek(sec: number, g: number) {
   try {
     await moveLiveTo(Math.round(sec * sampleRate));
     source = "live";
-    baseSec = sec;
     sent = 0;
     played = 0;
     eof = false;
@@ -337,7 +359,7 @@ async function handle(m: ToWorker) {
       pendingSeek = null;
       const idx = Math.floor((m.seconds * sampleRate) / CHUNK_FRAMES);
       const covered = cacheCovers(idx);
-      if (covered === "now") activateCache(idx, m.seconds, m.gen);
+      if (covered === "now") activateCache(idx, m.gen);
       else if (covered === "wait") pendingSeek = { idx, sec: m.seconds, gen: m.gen };
       else await liveSeek(m.seconds, m.gen);
       break;
@@ -350,31 +372,19 @@ async function handle(m: ToWorker) {
       if (!engine?.hasTune()) break;
       applyMutes(engine, mutes);
       if (cacheMode.mode === "off") break;
-      if (source === "cache" && cacheMode.mode === "prerender") {
-        // The live emulator is parked somewhere behind and catching it up would stall playback: keep playing the old mix
-        // until the cache, rendered again with the new one, reaches the playhead.
+      const seek = pendingSeek; // a seek waiting for the render still has to happen
+      if (source === "cache") {
+        // The cached audio has the old mix. The live emulator (which has the new one) is still catching up with the playhead
+        // after a seek: keep playing the old mix until it gets there, or the re-rendered cache does.
         const stale = staleCache && staleCache.length >= cache.length ? staleCache : cache;
         const pos = cachePos;
-        const seek = pendingSeek;
         resetCache(cacheMode);
         staleCache = stale;
         cachePos = pos;
-        pendingSeek = seek;
-        break;
+      } else {
+        resetCache(cacheMode); // re-render with the new mix
       }
-      if (source === "cache") {
-        // recorded audio still has the old mix and nothing re-renders it: catch the live emulator up and play from it
-        busy = true;
-        post({ type: "working", gen });
-        try {
-          await moveLiveTo(Math.round((baseSec + sent / sampleRate) * sampleRate));
-          source = "live";
-        } finally {
-          busy = false;
-          post({ type: "seeked", gen });
-        }
-      }
-      resetCache(cacheMode); // re-render with the new mix
+      pendingSeek = seek;
       break;
     }
     case "settings": {

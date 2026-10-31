@@ -360,10 +360,6 @@ audio.onSeeked = () => {
   updatePositionState();
 };
 
-audio.onWorking = () => {
-  loading.value = true;
-};
-
 audio.onError = (m) => {
   loading.value = false;
   message.value = `Could not play this tune: ${m}`;

@@ -2,6 +2,16 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.13.1 — 2026-10-31
+
+Muting a voice is instant again. Since 0.10.2, SIDtune let the emulator rest once the background render had caught up, to save CPU,
+but that meant a mute was only heard once the whole tune had been rendered again up to where you were listening. The emulator now keeps
+running alongside playback, so a mute takes effect straight away. This gives back the CPU saving from 0.10.2. After you seek, the
+emulator catches up with the new position in the background; a mute in that moment is heard as soon as it gets there.
+
+Also fixed: muting a voice while a seek was waiting for the background render could leave the player stuck loading, and a quick
+series of mutes made the render take several seconds to start again.
+
 ## 0.13.0 — 2026-10-31
 
 The visualiser can now go full screen. Click the button in its top-right corner, or press `V`, and the piano roll and oscilloscope fill

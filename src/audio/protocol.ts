@@ -31,8 +31,6 @@ export type FromWorker =
   | { type: "ready" }
   | { type: "loaded"; gen: number; info: TuneDetails }
   | { type: "seeked"; gen: number }
-  /** The worker is busy catching its emulator up (e.g. after muting a voice mid-tune). */
-  | { type: "working"; gen: number }
   | { type: "error"; gen: number; message: string }
   | { type: "meta"; gen: number; frame: number; regs: Uint8Array[] }
   | { type: "eof"; gen: number; frame: number }

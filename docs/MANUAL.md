@@ -97,10 +97,10 @@ Under *Settings → Sound*:
   different, especially the filter.
 - **Machine clock**: PAL or NTSC. This changes tempo and pitch; *Auto* follows the tune.
 - **Digi boost** makes sample playback audible on the 8580.
-- **Instant seeking** renders the whole tune into memory in the background so the seek slider responds immediately. Once that render
-  has caught up, playback comes from memory and the emulator rests, so it costs little extra CPU. It needs about 11 MB of memory per
-  minute of music. Turn it off to save memory; seeks then take a few seconds. With it on, muting a voice can take a moment to be heard,
-  because the tune is rendered again from the start with the new mix; playback carries on with the old mix meanwhile.
+- **Instant seeking** renders the whole tune into memory in the background, on a second CPU thread, so the seek slider responds
+  immediately. It needs about 11 MB of memory per minute of music. Turn it off to save memory and battery; seeks then take a few
+  seconds. Muting a voice is heard straight away either way; with Instant seeking on, the tune is then rendered again in the
+  background with the new mix. Right after a seek the mute can take a moment, while the emulator catches up with the new position.
 - **Pre-render long tunes** (on by default, needs Instant seeking) renders tunes longer than 10 minutes (5 on phones and tablets) in
   full as well, so they seek instantly too. A 30-minute tune takes about 330 MB of memory. Turn it off and those tunes keep only the part
   you have already heard; seeking beyond that takes a few seconds.
