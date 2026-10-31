@@ -38,6 +38,7 @@ let source: "live" | "cache" = "live";
 let liveFrames = 0; // frame position of the live emulator
 let liveAligned = false; // live chunk k is identical to cache chunk k (only true from a clean start)
 let cache: CachedChunk[] = [];
+let staleCache: CachedChunk[] | null = null; // the cache from before a mute change, played until `cache` reaches the playhead
 let cacheMode: CacheMode = { mode: "off" };
 let cacheDone = false;
 let cacheEnded = false; // the cache reached the real end of the tune
@@ -67,6 +68,7 @@ function details(e: SidAudioEngine): TuneDetails {
 function resetCache(mode: CacheMode) {
   cacheToken++;
   cache = [];
+  staleCache = null;
   cacheDone = false;
   cacheEnded = false;
   cachePos = 0;
@@ -218,6 +220,10 @@ async function pump() {
       if (cachePos < cache.length) {
         const c = cache[cachePos++];
         emit(c.pcm, c.chans, c.regs, myGen);
+        staleCache = null;
+      } else if (staleCache && cachePos < staleCache.length) {
+        const c = staleCache[cachePos++];
+        emit(c.pcm, c.chans, c.regs, myGen);
       } else if (!cacheDone) {
         await sleep(15);
       } else if (cacheEnded) {
@@ -236,9 +242,20 @@ async function pump() {
       continue;
     }
 
+    // Once the background render has caught up with playback, play from it and let the live emulator rest, so the tune
+    // isn't emulated twice. A live start that isn't chunk-aligned (resuming mid-tune) renders a short chunk to line up.
+    const offset = liveFrames % CHUNK_FRAMES;
+    const nextChunk = Math.ceil(liveFrames / CHUNK_FRAMES);
+    const handOff = cacheMode.mode === "prerender" && nextChunk < cache.length;
+    if (handOff && offset === 0) {
+      source = "cache";
+      cachePos = nextChunk;
+      continue;
+    }
+
     let pcm: Int16Array;
     try {
-      pcm = await e.renderFrames(CHUNK_FRAMES);
+      pcm = await e.renderFrames(handOff ? CHUNK_FRAMES - offset : CHUNK_FRAMES);
     } catch (err) {
       post({ type: "error", gen: myGen, message: String(err) });
       eof = true;
@@ -322,8 +339,22 @@ async function handle(m: ToWorker) {
     case "mute": {
       mutes[m.voice] = m.muted;
       if (!engine?.hasTune()) break;
-      if (source === "cache" && cacheMode.mode !== "off") {
-        // cached audio still has the old mix: catch the live emulator up and play from it
+      applyMutes(engine, mutes);
+      if (cacheMode.mode === "off") break;
+      if (source === "cache" && cacheMode.mode === "prerender") {
+        // The live emulator is parked somewhere behind and catching it up would stall playback: keep playing the old mix
+        // until the cache, rendered again with the new one, reaches the playhead.
+        const stale = staleCache && staleCache.length >= cache.length ? staleCache : cache;
+        const pos = cachePos;
+        const seek = pendingSeek;
+        resetCache(cacheMode);
+        staleCache = stale;
+        cachePos = pos;
+        pendingSeek = seek;
+        break;
+      }
+      if (source === "cache") {
+        // recorded audio still has the old mix and nothing re-renders it: catch the live emulator up and play from it
         busy = true;
         post({ type: "working", gen });
         try {
@@ -334,8 +365,7 @@ async function handle(m: ToWorker) {
           post({ type: "seeked", gen });
         }
       }
-      applyMutes(engine, mutes);
-      if (cacheMode.mode !== "off") resetCache(cacheMode); // re-render with the new mix
+      resetCache(cacheMode); // re-render with the new mix
       break;
     }
     case "settings": {

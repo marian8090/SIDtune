@@ -2,6 +2,15 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.10.2 — 2026-10-31
+
+Playback uses less CPU with Instant seeking on. Until now each tune was emulated twice: once for what you hear and once more in the
+background for seeking. As soon as the background render has caught up with playback, SIDtune now plays from it and lets the main
+emulator rest, which roughly halves the work on most tunes and helps laptop batteries and phones.
+
+Muting a voice while playing no longer pauses the music for a few seconds. The old mix keeps playing until the tune has been rendered
+again with the voice muted, then the change is heard.
+
 ## 0.10.1 — 2026-10-29
 
 *Next* no longer gets stuck on the same tune. If you played a tune from a short list (a single favorite, say) and then went back to the
