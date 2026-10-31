@@ -366,7 +366,7 @@ function cacheFor(meta: TuneMeta, songIndex: number): CacheMode {
   const s = settings.value;
   if (!s.seekCache) return { mode: "off" };
   const len = meta.lengths?.[songIndex] ?? lengthForPath(songlengths.value, meta.path, songIndex + 1) ?? s.defaultLengthSec;
-  return len <= SEEK_CACHE_MAX_SEC ? { mode: "prerender", sec: len + 2 } : { mode: "record", sec: SEEK_CACHE_MAX_SEC };
+  return len <= SEEK_CACHE_MAX_SEC || s.prerenderLong ? { mode: "prerender", sec: len + 2 } : { mode: "record", sec: SEEK_CACHE_MAX_SEC };
 }
 
 async function ensureAudio() {
@@ -521,7 +521,7 @@ export function updateSettings(patch: Partial<Settings>) {
   settings.value = { ...before, ...patch };
   if (patch.fxMode) audio.fx?.setMode(patch.fxMode);
   if (patch.eq) audio.fx?.setEq(patch.eq);
-  const engineChanged = (["engine", "sidModel", "c64Model", "digiBoost", "seekCache"] as const).some((k) => before[k] !== settings.value[k]);
+  const engineChanged = (["engine", "sidModel", "c64Model", "digiBoost", "seekCache", "prerenderLong"] as const).some((k) => before[k] !== settings.value[k]);
   if (engineChanged) {
     audio.applySettings(settings.value);
     if (current.value && currentData) {

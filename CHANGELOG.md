@@ -2,6 +2,13 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.11.0 — 2026-10-31
+
+Long tunes seek instantly too. Until now, tunes longer than 10 minutes (5 on phones and tablets) were only kept in memory as far as you
+had listened, so jumping ahead meant waiting. They are now rendered in full like shorter tunes. This takes about 11 MB of memory per
+minute of music, so if a very long tune makes your browser struggle, turn off the new *Pre-render long tunes* option under
+*Settings → Sound* to go back to the old behaviour.
+
 ## 0.10.2 — 2026-10-31
 
 Playback uses less CPU with Instant seeking on. Until now each tune was emulated twice: once for what you hear and once more in the

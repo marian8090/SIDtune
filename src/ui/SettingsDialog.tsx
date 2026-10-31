@@ -3,6 +3,7 @@ import { font, FONTS, showWelcome, theme, THEMES, tooltips, type FontId, type Th
 import { parseSonglengths } from "../lib/songlengths";
 import { kvSet } from "../lib/db";
 import { parseStil } from "../lib/stil";
+import { SEEK_CACHE_MAX_SEC } from "../lib/types";
 import { aboutOpen, collectionDownload, collectionMissingBytes, connectHvsc, docOpen, downloadCollection, stopCollectionDownload, exportBackup, favorites, playlists, restoreBackup, storagePersisted, hvscAvailable, hvscStatus, localTunes, message, roms, saveRoms, settings, settingsOpen, songlengths, stil, updateSettings, wipeLibrary } from "../state";
 import { confirmDialog } from "./Ask";
 import { Close } from "./Icons";
@@ -170,11 +171,26 @@ export function SettingsDialog() {
           <span>
             Instant seeking
             <small>
-              Renders each tune into memory in the background so seeking is immediate. Uses a second CPU thread and about 11 MB of memory per
-              minute of music (tunes up to 10 minutes, 5 on phones). Turn off to save memory and battery; seeks then take a few seconds.
+              Renders each tune into memory in the background so seeking is immediate; once it has caught up, playback comes from memory.
+              Uses about 11 MB of memory per minute of music. Turn off to save memory; seeks then take a few seconds.
             </small>
           </span>
           <input type="checkbox" checked={s.seekCache} onChange={(e) => updateSettings({ seekCache: (e.currentTarget as HTMLInputElement).checked })} />
+        </label>
+        <label class="field">
+          <span>
+            Pre-render long tunes
+            <small>
+              Renders tunes longer than {SEEK_CACHE_MAX_SEC / 60} minutes in full as well (a 30-minute tune needs about 330 MB). Turn off to keep
+              only the part you have heard of those, which saves memory on phones.
+            </small>
+          </span>
+          <input
+            type="checkbox"
+            checked={s.prerenderLong}
+            disabled={!s.seekCache}
+            onChange={(e) => updateSettings({ prerenderLong: (e.currentTarget as HTMLInputElement).checked })}
+          />
         </label>
         <label class="field">
           <span>

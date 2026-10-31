@@ -60,7 +60,8 @@ AudioController              libsidplayfp WASM  PCM       plays chunks,
 
 - Seeking is instant once the background render has caught up (about 7x realtime on reSIDfp, so a few seconds after a tune starts, longer
   for long tunes). Seeking ahead of that, muting a voice after a seek, or turning Instant seeking off falls back to running the emulator up
-  to the target, which shows a spinner. The cache costs about 11 MB per minute of music and a second CPU thread.
+  to the target, which shows a spinner. The cache costs about 11 MB per minute of music. Tunes longer than 10 minutes (5 on touch
+  devices) are rendered in full too unless *Pre-render long tunes* is off; then only the part already played is kept.
 - The audio quality modes use ultraSID's parameter values but a Web Audio reverb (synthetic impulse response) instead of its MVerb, so the room sounds similar rather than identical. There is no loudness normalisation yet, and downloads are the unprocessed chip output.
 - The engine is stock libsidplayfp rather than ultraSID's libSidplayEZ fork.
 - No C64 title screens, screenshots or portraits, and no CRT view.

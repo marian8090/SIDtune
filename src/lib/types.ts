@@ -35,6 +35,8 @@ export interface Settings {
   hvsc: boolean;
   /** Pre-render tunes in the background so seeking is instant (uses memory and a second thread). */
   seekCache: boolean;
+  /** With seekCache, render tunes longer than SEEK_CACHE_MAX_SEC in full too, instead of keeping only what has been played. */
+  prerenderLong: boolean;
   defaultLengthSec: number;
   volume: number;
   shuffle: boolean;
@@ -47,7 +49,7 @@ export interface Playlist {
   paths: string[];
 }
 
-/** Longest tune (seconds) kept fully in memory for instant seeking; touch devices get a smaller budget. */
+/** Longest tune (seconds) rendered in full for instant seeking when prerenderLong is off; touch devices get a smaller budget. */
 export const SEEK_CACHE_MAX_SEC = typeof matchMedia === "function" && matchMedia("(pointer: coarse)").matches ? 300 : 600;
 
 /** Phones and tablets get the lighter engine so playback keeps up in real time. */
@@ -62,6 +64,7 @@ export const DEFAULT_SETTINGS: Settings = {
   eq: [0, 0, 0],
   hvsc: true,
   seekCache: true,
+  prerenderLong: true,
   defaultLengthSec: 180,
   volume: 0.8,
   shuffle: false,

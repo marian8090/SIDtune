@@ -100,6 +100,9 @@ Under *Settings → Sound*:
   has caught up, playback comes from memory and the emulator rests, so it costs little extra CPU. It needs about 11 MB of memory per
   minute of music. Turn it off to save memory; seeks then take a few seconds. With it on, muting a voice can take a moment to be heard,
   because the tune is rendered again from the start with the new mix; playback carries on with the old mix meanwhile.
+- **Pre-render long tunes** (on by default, needs Instant seeking) renders tunes longer than 10 minutes (5 on phones and tablets) in
+  full as well, so they seek instantly too. A 30-minute tune takes about 330 MB of memory. Turn it off and those tunes keep only the part
+  you have already heard; seeking beyond that takes a few seconds.
 
 ## 5. Downloading
 
@@ -180,6 +183,7 @@ the media controls in your browser.
 
 - **No sound on iPhone or iPad**: make sure the volume is up. SIDtune plays even with the silent switch on.
 - **Stuttering on a phone**: choose SIDLite under *Settings → Sound → Emulation engine*, and turn off Instant seeking.
+- **The page reloads or crashes during a very long tune**: the browser ran out of memory. Turn off *Pre-render long tunes*.
 - **A tune plays silence or garbage**: it may need the C64 ROMs (see *C64 ROMs* above).
 - **A tune stops too early or runs on**: its length is missing or wrong in the song-length database; the default length is used instead.
 
