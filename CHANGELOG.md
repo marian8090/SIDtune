@@ -2,6 +2,12 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.13.0 — 2026-10-31
+
+The visualiser can now go full screen. Click the button in its top-right corner, or press `V`, and the piano roll and oscilloscope fill
+the whole screen, which is a nice way to leave a tune playing on a second monitor or a TV. Press `Esc` or the button again to return.
+On iPhone it fills the browser window instead, since Safari doesn't let part of a page go full screen there.
+
 ## 0.12.0 — 2026-10-31
 
 A thin line under the seek bar now shows how much of the tune has been rendered for instant seeking, so you can tell where a jump will

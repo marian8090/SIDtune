@@ -67,7 +67,8 @@ On a wide window the Now Playing panel is open from the start; on smaller screen
 
 - the title, composer, release and chip details (6581 or 8580, PAL or NTSC, number of SID chips);
 - a **visualiser**: a scrolling piano roll of every voice on every SID chip, coloured by waveform, plus an oscilloscope and the filter
-  settings;
+  settings. The button in its top-right corner (or `V`) shows it full screen; `Esc` or the button again brings it back. On iPhone,
+  where Safari can't make part of a page full screen, it fills the browser window instead;
 - **Voice 1, 2, 3** buttons that mute individual voices, handy for picking apart how a tune is built;
 - the subtunes, the STIL notes, and the Download and Share buttons.
 
@@ -157,6 +158,7 @@ Shortcuts work whenever you are not typing in a text field.
 | `R` | Repeat: off, all, one |
 | `F` | Favorite the playing tune |
 | `N` | Open or close Now Playing |
+| `V` | Visualiser full screen on or off |
 | `L` | Share a link to the playing tune |
 | `/` | Search |
 | `T` / `Shift+T` | Next or previous theme |

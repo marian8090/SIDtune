@@ -359,6 +359,18 @@ input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bo
 .viz-roll { width: 100%; height: 130px; border-radius: 6px; display: block; }
 .viz-scope { width: 100%; height: 48px; display: block; }
 .viz-info { font-family: var(--mono); font-size: 11px; color: var(--muted); min-height: 14px; }
+.viz { position: relative; }
+.viz-full-btn { position: absolute; top: 10px; right: 10px; z-index: 1; color: var(--muted); background: var(--viz-bg); opacity: 0; transition: opacity 0.15s; }
+.viz:hover .viz-full-btn, .viz-full-btn:focus-visible, .viz.full .viz-full-btn { opacity: 1; }
+@media (hover: none) { .viz-full-btn { opacity: 0.8; } }
+.viz.full {
+  position: fixed; inset: 0; z-index: 1000; border: 0; border-radius: 0; gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+}
+.viz.full .viz-full-btn { top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); }
+.viz.full .viz-roll { flex: 1; height: auto; min-height: 0; }
+.viz.full .viz-scope { height: 18vh; }
+.viz.full .viz-info { font-size: 14px; }
 .voices, .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
 .chip { padding: 5px 12px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px; }
 .chip.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; font-weight: 700; }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "preact/hooks";
 import { theme } from "../lib/prefs";
-import { audio, current, playing } from "../state";
+import { audio, current, playing, vizFull } from "../state";
+import { Fullscreen, FullscreenExit } from "./Icons";
 
 interface Palette {
   bg: string;
@@ -29,6 +30,26 @@ export function Viz() {
   const roll = useRef<HTMLCanvasElement>(null);
   const scope = useRef<HTMLCanvasElement>(null);
   const info = useRef<HTMLDivElement>(null);
+  const box = useRef<HTMLDivElement>(null);
+  const full = vizFull.value;
+
+  // Browsers that can't make an element fullscreen (Safari on iPhone) get the .full class alone, which fills the window.
+  useEffect(() => {
+    const el = box.current!;
+    if (full && !document.fullscreenElement && el.requestFullscreen) el.requestFullscreen().catch(() => {});
+    else if (!full && document.fullscreenElement === el) void document.exitFullscreen();
+  }, [full]);
+
+  useEffect(() => {
+    const onChange = () => {
+      if (!document.fullscreenElement && vizFull.peek()) vizFull.value = false;
+    };
+    document.addEventListener("fullscreenchange", onChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", onChange);
+      vizFull.value = false;
+    };
+  }, []);
 
   useEffect(() => {
     const rc = roll.current!;
@@ -126,7 +147,15 @@ export function Viz() {
   }, []);
 
   return (
-    <div class="viz">
+    <div ref={box} class={`viz ${full ? "full" : ""}`}>
+      <button
+        class="icon-btn viz-full-btn"
+        title={full ? "Exit full screen (V or Esc)" : "Full screen (V)"}
+        aria-label={full ? "Exit full screen" : "Full screen"}
+        onClick={() => (vizFull.value = !full)}
+      >
+        {full ? <FullscreenExit /> : <Fullscreen />}
+      </button>
       <canvas ref={roll} class="viz-roll" />
       <canvas ref={scope} class="viz-scope" />
       <div ref={info} class="viz-info" />

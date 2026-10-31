@@ -31,6 +31,7 @@ import {
   tunes,
   updateSettings,
   view,
+  vizFull,
 } from "../state";
 import { AboutDialog } from "./About";
 import { AskDialog } from "./Ask";
@@ -90,6 +91,10 @@ export function App() {
         cycleTheme(e.shiftKey ? -1 : 1);
         message.value = `Theme: ${THEMES.find((x) => x.id === theme.value)!.label}`;
       } else if (k === "n" && t) nowPlayingOpen.value = !nowPlayingOpen.value;
+      else if (k === "v" && t) {
+        if (!vizFull.value) nowPlayingOpen.value = true;
+        vizFull.value = !vizFull.value;
+      }
       else if (k === "f" && t) toggleFavorite(t.path);
       else if (k === "s") {
         updateSettings({ shuffle: !settings.value.shuffle });
@@ -104,7 +109,8 @@ export function App() {
       else if (e.key === "-") setVolume(Math.max(0, settings.value.volume - 0.05));
       else if (/^[1-9]$/.test(e.key) && t && Number(e.key) <= (details.value?.songs ?? t.songs)) selectSong(Number(e.key) - 1);
       else if (e.key === "Escape") {
-        if (docOpen.value) docOpen.value = null;
+        if (vizFull.value) vizFull.value = false;
+        else if (docOpen.value) docOpen.value = null;
         else if (aboutOpen.value) aboutOpen.value = false;
         else if (sharedTune.value) sharedTune.value = null;
         else if (settingsOpen.value) settingsOpen.value = false;

@@ -56,6 +56,8 @@ export const duration = signal(180);
 export const lengthKnown = signal(false);
 export const message = signal<string | null>(null);
 export const importProgress = signal<{ done: number; total: number } | null>(null);
+/** The visualiser fills the screen (or the window, where the browser can't make an element fullscreen). */
+export const vizFull = signal(false);
 export const nowPlayingOpen = signal(typeof matchMedia === "function" && matchMedia("(min-width: 1101px)").matches);
 export const settingsOpen = signal(false);
 export const docOpen = signal<"manual" | "changelog" | null>(null);
