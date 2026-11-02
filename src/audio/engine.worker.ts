@@ -48,7 +48,16 @@ let maxChunks = 0;
 let pendingSeek: { idx: number; sec: number; gen: number } | null = null;
 
 const post = (m: FromWorker, transfer: Transferable[] = []) => (self as DedicatedWorkerGlobalScope).postMessage(m, transfer);
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// pump() parks here instead of polling, until a message may have given it something to do: a control message, the worklet
+// reporting progress (the buffer drained), or a chunk from the background render.
+let wakeUp: (() => void) | null = null;
+const nap = () => new Promise<void>((r) => (wakeUp = r));
+function wake() {
+  const w = wakeUp;
+  wakeUp = null;
+  w?.();
+}
 
 function details(e: SidAudioEngine): TuneDetails {
   const i = e.getTuneInfo()!;
@@ -102,6 +111,7 @@ function resetCache(mode: CacheMode) {
 function onCachePort(e: MessageEvent) {
   const m = e.data;
   if (m.token !== cacheToken) return;
+  wake();
   if (m.type === "chunk") {
     if (m.idx === cache.length) cache.push({ pcm: m.pcm, chans: m.chans, regs: m.regs });
     if (cache.length % 16 === 0) reportCache();
@@ -210,7 +220,7 @@ async function pump() {
   for (;;) {
     const e = engine;
     if (!e || busy || paused || eof || !e.hasTune() || sent - played >= TARGET_BUFFER_S * sampleRate) {
-      await sleep(12);
+      await nap();
       continue;
     }
     const myGen = gen;
@@ -220,7 +230,7 @@ async function pump() {
       const p = pendingSeek;
       const state = cacheCovers(p.idx);
       if (state === "now") activateCache(p.idx, p.sec, p.gen);
-      else if (state === "wait") await sleep(15);
+      else if (state === "wait") await nap();
       else await liveSeek(p.sec, p.gen);
       continue;
     }
@@ -234,7 +244,7 @@ async function pump() {
         const c = staleCache[cachePos++];
         emit(c.pcm, c.chans, c.regs, myGen);
       } else if (!cacheDone) {
-        await sleep(15);
+        await nap();
       } else if (cacheEnded) {
         eof = true;
         post({ type: "eof", gen: myGen, frame: sent });
@@ -317,6 +327,7 @@ async function handle(m: ToWorker) {
       dataPort = m.port;
       dataPort.onmessage = (e: MessageEvent<LevelMessage>) => {
         if (e.data.gen === gen) played = e.data.played;
+        wake();
       };
       break;
     case "cache-port":
@@ -401,5 +412,8 @@ async function handle(m: ToWorker) {
 // Messages run one at a time so a load never overlaps a settings change or seek.
 let chain: Promise<void> = Promise.resolve();
 self.onmessage = (ev: MessageEvent<ToWorker>) => {
-  chain = chain.then(() => handle(ev.data)).catch((err) => console.error("[sidtune worker]", err));
+  chain = chain
+    .then(() => handle(ev.data))
+    .catch((err) => console.error("[sidtune worker]", err))
+    .finally(wake);
 };

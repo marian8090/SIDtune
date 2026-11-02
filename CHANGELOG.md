@@ -2,6 +2,11 @@
 
 What changed for listeners, newest first. Versions before 0.5.0 were numbered afterwards from the project history.
 
+## 0.13.2 — 2026-11-02
+
+Uses less battery. The player used to check about 80 times a second whether it had audio to render, even while paused or with
+nothing loaded. It now sleeps until there is something to do, so a paused or idle SIDtune tab costs next to nothing.
+
 ## 0.13.1 — 2026-10-31
 
 Fixed "Could not play: … The database connection is closing", which could appear when skipping to the next tune after the tab had been
